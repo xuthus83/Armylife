@@ -1,0 +1,51 @@
+server:
+  port: 10001
+spring:
+  application:
+    name: marketservice
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 118.31.121.141:8848
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session
+      flush-mode: on_save
+    timeout: 86400s
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    timeout: 86400s
+    jedis:
+      pool:
+        max-active: 200
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
+    hikari:
+      max-lifetime: 1
+  rabbitmq:
+    host: 192.168.5.111
+    username: armylife
+    password: Kzr20191116.
+    port: 5672
+#logging:
+mybatis:
+  mapper-locations: classpath*:Mapper/*Mapper.xml
+  config-location: classpath:Mapper/config/sqlMapConfig.xml
+  type-aliases-package: cn.armylife.common.Domain
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: countSql
+logging:
+  level:
+    cn.armylife.payments.Mapper: debug
+    com.alibaba.nacos.client.naming: error

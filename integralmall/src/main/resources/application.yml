@@ -1,0 +1,42 @@
+server:
+  port: 9132
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
+    username: root
+    password: root
+    hikari:
+      max-lifetime: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 118.31.121.141:8848
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 127.0.0.1:8718
+  session:
+    redis:
+      namespace: spring:session
+      flush-mode: on_save
+    store-type: Redis
+    timeout: 3600s
+  redis:
+    timeout: 3600s
+    port: 6379
+    host: 127.0.0.1
+  application:
+    name: integralservice
+  aop:
+    auto: true
+  jackson:
+    date-format: yyyy/MM/dd HH:mm:ss
+    time-zone: GMT+8
+mybatis:
+  mapper-locations: classpath*:Mapper/*Mapper.xml
+  config-location: classpath:Mapper/config/sqlMapConfig.xml
+logging:
+  level:
+      cn.armylife.payments.Mapper: debug
+      com.alibaba.nacos.client.naming: error
