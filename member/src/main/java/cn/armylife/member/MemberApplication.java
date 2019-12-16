@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableHystrix
 @EnableHystrixDashboard
 @EnableCircuitBreaker
-@MapperScan(basePackages = "cn.armylife.member.Mapper")
+@MapperScan("cn.armylife.member.mapper")
 @EnableTransactionManagement
 public class MemberApplication {
 

@@ -12,10 +12,6 @@ spring:
     nacos:
       discovery:
         server-addr: 118.31.121.141:8848
-    sentinel:
-      transport:
-        port: 8719
-        dashboard: 127.0.0.1:8718
   session:
     redis:
       namespace: spring:session
@@ -34,8 +30,9 @@ spring:
     date-format: yyyy/MM/dd HH:mm:ss
     time-zone: GMT+8
 mybatis:
-  mapper-locations: classpath*:Mapper/*Mapper.xml
-  config-location: classpath:Mapper/config/sqlMapConfig.xml
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  config-location: classpath:mapper/config/sqlMapConfig.xml
+  type-aliases-package: cn.armylife.member.mapper
 
 logging:
   level:

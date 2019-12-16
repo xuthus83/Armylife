@@ -37,8 +37,8 @@ spring:
     port: 5672
 #logging:
 mybatis:
-  mapper-locations: classpath*:Mapper/*Mapper.xml
-  config-location: classpath:Mapper/config/sqlMapConfig.xml
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  config-location: classpath:mapper/config/sqlMapConfig.xml
   type-aliases-package: cn.armylife.common.Domain
 pagehelper:
   helper-dialect: mysql

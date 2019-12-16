@@ -34,8 +34,8 @@ spring:
     date-format: yyyy/MM/dd HH:mm:ss
     time-zone: GMT+8
 mybatis:
-  mapper-locations: classpath*:Mapper/*Mapper.xml
-  config-location: classpath:Mapper/config/sqlMapConfig.xml
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  config-location: classpath:mapper/config/sqlMapConfig.xml
 
 logging:
   level:
