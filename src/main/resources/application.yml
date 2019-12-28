@@ -1,9 +1,13 @@
 server:
   port: 9000
+  servlet:
+    context-path: /
 zuul:
+  sensitive-headers: Access-Control-Allow-Origin
+  ignored-headers: Access-Control-Allow-Origin,H-APP-Id,Token,APPToken
   host:
-    connect-timeout-millis: 15000 #HTTP连接超时要比Hystrix的大
     socket-timeout-millis: 60000
+    connect-timeout-millis: 60000
   routes:
     Member:
       path: /Member/**
@@ -27,6 +31,8 @@ zuul:
       sensitiveHeaders:
 
 spring:
+  profiles:
+    active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
@@ -37,7 +43,8 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 118.31.121.141:8848
+        server-addr: 127.0.0.1:8848
+        ip: 192.168.5.105
   application:
     name: zuul
   redis:
@@ -59,3 +66,11 @@ base-path: /
 ribbon:
   ReadTimeout: 60000
   ConnectTimeout: 60000
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000

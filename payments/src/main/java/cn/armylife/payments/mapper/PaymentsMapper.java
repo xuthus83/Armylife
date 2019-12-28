@@ -1,6 +1,9 @@
 package cn.armylife.payments.mapper;
 
+import cn.armylife.common.domain.AfterOrder;
+import cn.armylife.common.domain.Member;
 import cn.armylife.common.domain.Payments;
+import cn.armylife.common.domain.ShopOrder;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -76,4 +79,17 @@ public interface PaymentsMapper {
      */
     Payments selectPaments(Long orderId);
 
+    ShopOrder selectOrder(Long ordersId);
+    AfterOrder selectAfterOrder(Long ordersId);
+
+    int updateShopOrder(ShopOrder shopOrder);
+
+    Payments selectOrderForPayments(Long paymentsId);
+
+    int updateShop(Member member);
+
+    Member selectMember(Long memberId);
+
+
+    Member selectMemberForOpenid(String memberWechat);
 }

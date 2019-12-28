@@ -1,12 +1,15 @@
 server:
   port: 10001
 spring:
+  profiles:
+    active: dev
   application:
     name: marketservice
   cloud:
     nacos:
       discovery:
-        server-addr: 118.31.121.141:8848
+        server-addr: 127.0.0.1:8848
+        ip: 127.0.0.1
   session:
     store-type: redis
     redis:
@@ -25,21 +28,15 @@ spring:
         min-idle: 0
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 127.0.0.1:3306/armylife?serverTimezone=UTC
     username: root
     password: root
-    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
     hikari:
-      max-lifetime: 1
-  rabbitmq:
-    host: 192.168.5.111
-    username: armylife
-    password: Kzr20191116.
-    port: 5672
+      max-lifetime: 0
 #logging:
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
   config-location: classpath:mapper/config/sqlMapConfig.xml
-  type-aliases-package: cn.armylife.common.Domain
 pagehelper:
   helper-dialect: mysql
   reasonable: true

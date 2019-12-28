@@ -64,6 +64,16 @@ public class Product implements Serializable {
 
     private String orderNum;
 
+    private BigDecimal productBoxfee;
+
+    public BigDecimal getProductBoxfee() {
+        return productBoxfee;
+    }
+
+    public void setProductBoxfee(BigDecimal productBoxfee) {
+        this.productBoxfee = productBoxfee;
+    }
+
     public String getOrderNum() {
         return orderNum;
     }
@@ -356,21 +366,22 @@ public class Product implements Serializable {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", productId=").append(productId);
-        sb.append(", shopId=").append(shopId);
-        sb.append(", tagId=").append(tagId);
-        sb.append(", productTotal=").append(productTotal);
-        sb.append(", productName=").append(productName);
-        sb.append(", productType=").append(productType);
-        sb.append(", productDesc=").append(productDesc);
-        sb.append(", status=").append(status);
-        sb.append(", productAvator=").append(productAvator);
-        sb.append(", serialVersionUID=").append(serialVersionUID);
-        sb.append("]");
-        return sb.toString();
+        return "Product{" +
+                "productId=" + productId +
+                ", shopId=" + shopId +
+                ", tagId=" + tagId +
+                ", productTotal=" + productTotal +
+                ", productName='" + productName + '\'' +
+                ", productType='" + productType + '\'' +
+                ", productDesc='" + productDesc + '\'' +
+                ", shopTag=" + shopTag +
+                ", orderNum='" + orderNum + '\'' +
+                ", productBoxfee=" + productBoxfee +
+                ", status=" + status +
+                ", productAvator='" + productAvator + '\'' +
+                ", dayTotal=" + dayTotal +
+                ", dayNum=" + dayNum +
+                ", monthNum=" + monthNum +
+                '}';
     }
 }

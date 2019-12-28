@@ -92,4 +92,8 @@
     refunds_bumber
     from payments
   </select>
+
+  <select id="selectPaymentsForOrder" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select * from payments where order_id=#{orderId}
+  </select>
 </mapper>

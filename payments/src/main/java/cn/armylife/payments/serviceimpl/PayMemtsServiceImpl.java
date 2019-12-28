@@ -1,12 +1,18 @@
 package cn.armylife.payments.serviceimpl;
 
 import cn.armylife.common.domain.AfterOrder;
+import cn.armylife.common.domain.Member;
+import cn.armylife.common.domain.Payments;
+import cn.armylife.common.domain.ShopOrder;
+import cn.armylife.payments.feignservice.IntegralService;
 import cn.armylife.payments.mapper.AfterOrderMapper;
 import cn.armylife.payments.mapper.PaymentsMapper;
 import cn.armylife.payments.service.PayMentsService;
-import cn.armylife.common.domain.Payments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 @Service
 public class PayMemtsServiceImpl implements PayMentsService {
@@ -15,6 +21,8 @@ public class PayMemtsServiceImpl implements PayMentsService {
     PaymentsMapper paymentsMapper;
     @Autowired
     AfterOrderMapper afterOrderMapper;
+    @Autowired
+    IntegralService integralService;
 
     /**
      * 查询商铺收入金额
@@ -66,4 +74,59 @@ public class PayMemtsServiceImpl implements PayMentsService {
     public int updateafterOrderForPay(AfterOrder afterOrder){
         return afterOrderMapper.updateafterOrderForPay(afterOrder);
     };
+
+    /**
+     * 查询订单
+     * @param ordersId
+     * @return
+     */
+    public ShopOrder selectOrder(Long ordersId){
+        return paymentsMapper.selectOrder(ordersId);
+    };
+
+    /**
+     * 查询子订单
+     * @param ordersId
+     * @return
+     */
+    public AfterOrder selectAfterOrder(Long ordersId){
+        return paymentsMapper.selectAfterOrder(ordersId);
+    };
+
+    /**
+     * 更新订单状态
+     * @param shopOrder
+     * @return
+     */
+    @Override
+    public int updateShopOrder(ShopOrder shopOrder){
+        return paymentsMapper.updateShopOrder(shopOrder);
+    };
+
+    @Override
+    public Payments selectOrderForPayments(Long paymentsId){
+        return paymentsMapper.selectOrderForPayments(paymentsId);
+    };
+
+    @Override
+    public int updateShop(Member member){
+        return paymentsMapper.updateShop(member);
+    };
+
+    @Override
+    public Member selectMember(Long memberId){
+        return paymentsMapper.selectMember(memberId);
+    };
+
+    public int payintegralIncrease(Integer total, HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Student");
+        return integralService.payintegralIncrease(total,member.getMemberId());
+    };
+
+    public Member selectMemberForOpenid(String memberWechat){
+        return paymentsMapper.selectMemberForOpenid(memberWechat);
+    };
+
 }
+

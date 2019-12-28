@@ -46,4 +46,6 @@ public interface ShopOrderMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(ShopOrder record);
+
+    List<ShopOrder> selectTaskOrder(String time);
 }

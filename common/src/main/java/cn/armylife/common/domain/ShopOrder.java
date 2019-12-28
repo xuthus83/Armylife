@@ -1,5 +1,7 @@
 package cn.armylife.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -132,6 +134,7 @@ public class ShopOrder implements Serializable {
      *
      * @mbggenerated
      */
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date endTime;
 
     /**
@@ -165,6 +168,24 @@ public class ShopOrder implements Serializable {
     private List<Product> products;
     private String memberName;
     private  int isexpress;
+    private int isRefund;
+    private int isShow;
+
+    public int getIsRefund() {
+        return isRefund;
+    }
+
+    public void setIsRefund(int isRefund) {
+        this.isRefund = isRefund;
+    }
+
+    public int getIsShow() {
+        return isShow;
+    }
+
+    public void setIsShow(int isShow) {
+        this.isShow = isShow;
+    }
 
     public int getIsexpress() {
         return isexpress;

@@ -38,4 +38,26 @@ public interface ShopTagMapper {
      * @return
      */
     List<ShopTag> selectShopProduct(Long shopId);
+
+    /**
+     * 删除商户分类
+     * @param shopTagId
+     * @return
+     */
+    int removeTag(Long shopTagId);
+
+    /**
+     * 更新tagId
+     * @param shopTagId
+     * @param tagId
+     * @return
+     */
+    int updateTag(Long shopTagId,int tagId);
+
+    /**
+     * 更新shop_tag的tag_name名
+     * @param shopTag
+     * @return
+     */
+    int updateTagName(ShopTag shopTag);
 }

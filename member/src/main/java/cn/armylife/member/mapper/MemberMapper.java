@@ -2,6 +2,7 @@ package cn.armylife.member.mapper;
 
 import cn.armylife.common.domain.Member;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -87,7 +88,7 @@ public interface MemberMapper {
      * @param phone
      * @return
      */
-    Member inspectMemberForPhone(String phone);
+    Member inspectMemberForPhone(@Param("phone") String phone,@Param("type") String type);
 
     /**
      * 更新跑腿手机号码

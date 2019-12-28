@@ -30,13 +30,27 @@ public class IntegralMallContreoller {
 
     @RequestMapping("registerIntegral")
     @ResponseBody
-    public int registerIntegral(HttpServletRequest request){
+    public int registerIntegral(Long memberId,HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
         IntegralUser integralUser=new IntegralUser();
-        integralUser.setUserId(member.getMemberId());
+        integralUser.setUserId(memberId);
         integralUser.setIntegral(0);
         return integralMallService.integralUserinsert(integralUser);
+    }
+
+    /**
+     * 积分增加
+     * @param integral
+     * @param memberId
+     * @return
+     */
+    @RequestMapping("payintegralIncrease")
+    @ResponseBody
+    public int payintegralIncrease(Integer integral,Long memberId){
+        logger.info(integral+"uiuiui");
+        Double total= integral*0.01;
+        return integralMallService.integralIncrease(total.intValue(),memberId);
     }
 
     /**
@@ -51,9 +65,11 @@ public class IntegralMallContreoller {
         logger.info(integral+"uiuiui");
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
+        logger.info("用户信息:"+member.toString());
         IntegralUser integralUser=new IntegralUser();
         integralUser.setUserId(member.getMemberId());
-        integralUser.setIntegral(integral);
+        Double total= integral*0.01;
+        integralUser.setIntegral(total.intValue());
         return integralMallService.integralIncrease(integral,member.getMemberId());
     }
 

@@ -15,7 +15,7 @@ public class MarketServiceHystrix implements MarketService {
     };
 
     @Override
-    public int plusVipHairOrder(String out_trade_no){
+    public int plusVipHairOrder(String out_trade_no,Long memberId){
         return 0;
     };
 
@@ -23,4 +23,19 @@ public class MarketServiceHystrix implements MarketService {
     public AfterOrder SelectAfterOrder(Long orderId){
         return null;
     };
+
+    /**
+     * 更新订单信息
+     * @param shopOrder
+     * @return
+     */
+    @Override
+    public int updateShopOrder(ShopOrder shopOrder){
+        return 0;
+    }
+
+    @Override
+    public int updateHairAmount(String total,Long memberId,Long paymentsId){
+        return 0;
+    }
 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
@@ -29,9 +31,28 @@ public class StudentController {
     public Member ShopNewForAppId(String appid){
         return memberService.ShopNewForAppId(appid);
     }
+
+    /**
+     * 通过appId查询商户信息
+     * @param appid
+     * @return
+     */
+    @RequestMapping("ShopIsDone")
+    @ResponseBody
+    public int ShopNewForArmylife(String appid){
+        Member member=memberService.ShopNewForAppId(appid);
+        if (member==null){
+            return 0;
+        }else if (member.getShopStatus()==1){
+            return 3;
+        }else if(member.getIsHot()==1){
+            return 2;
+        }
+        return 1;
+    }
     /**
      * 通过tagId查找商品
-     * @param tagId
+     * @param shopId
      * @return
      */
     @RequestMapping("productForTag")
@@ -39,4 +60,16 @@ public class StudentController {
     public List<Product> productForTag(long shopId){
         return memberService.productForTag(shopId);
     };
+
+    @RequestMapping("loginDev")
+    @ResponseBody
+    public int loginUser(String code, HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member member=memberService.loginDev(code);
+        session.setAttribute("Student",memberService);
+        return 1;
+
+    }
+
+
 }

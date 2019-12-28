@@ -1,9 +1,13 @@
 package cn.armylife.payments.service;
 
 import cn.armylife.common.domain.AfterOrder;
+import cn.armylife.common.domain.Member;
 import cn.armylife.common.domain.Payments;
+import cn.armylife.common.domain.ShopOrder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Service
 @Transactional
@@ -48,4 +52,22 @@ public interface PayMentsService {
     int insert(Payments record);
 
     int updateafterOrderForPay(AfterOrder afterOrder);
+
+    ShopOrder selectOrder(Long ordersId);
+
+
+    AfterOrder selectAfterOrder(Long ordersId);
+
+    int updateShopOrder(ShopOrder shopOrder);
+
+    Payments selectOrderForPayments(Long paymentsId);
+    int updateShop(Member member);
+
+
+    Member selectMember(Long memberId);
+
+    int payintegralIncrease(Integer total, HttpServletRequest request);
+
+
+    Member selectMemberForOpenid(String memberWechat);
 }

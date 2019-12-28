@@ -9,11 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
+@Transactional
 public class ProductServiceImpl implements ProductService {
 
 
@@ -26,6 +30,7 @@ public class ProductServiceImpl implements ProductService {
     @Autowired private ShopTagMapper shopTagMapper;
     @Autowired private ProductDetailMapper productDetailMapper;
     @Autowired private HairvipMapper hairvipMapper;
+    @Autowired private VipMapper vipMapper;
     @Autowired
     OrderDetailMapper orderDetailMapper;
 
@@ -141,8 +146,8 @@ public class ProductServiceImpl implements ProductService {
             lp.add(product);
         }
         ListOperations<String, Object> lo = redisTemplate.opsForList();
-        lo.leftPop("userId-" +member+shopId);
-        lo.rightPush("userId-" +member+shopId,lp);
+        lo.leftPop("userId-" +member+"s"+shopId);
+        lo.rightPush("userId-" +member+"s"+shopId,lp);
         return 1;
     }
 
@@ -187,5 +192,62 @@ public class ProductServiceImpl implements ProductService {
 
     public int orderdetailinsert(OrderDetail record){
         return orderDetailMapper.insert(record);
+    };
+
+    /**
+     * 查询认领会员
+     * @param userName
+     * @param groupNumber
+     * @return
+     */
+    public int FindVip(String userName,String groupNumber,Long memberId){
+        Vip vip=vipMapper.FindVip(userName,groupNumber);
+        if (vip!=null){
+            vipMapper.removeVip(vip.getVipId());
+            Hairvip hairvip=new Hairvip();
+            hairvip.setHairvipName(vip.getUserName());
+            int number=Integer.valueOf(vip.getNumber());
+            int newnum=11-number;
+            hairvip.setHairvipNum(String.valueOf(newnum));
+            hairvip.setHaivipAddress(vip.getGroupNumber());
+            SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String time=simpleDateFormat.format(new Date());
+            hairvip.setCreatTime(time);
+            hairvip.setIs(1);
+            hairvip.setVipId(memberId);
+           return hairvipMapper.insert(hairvip);
+        }else {
+            return 0;
+        }
+    };
+
+    /**
+     * 删除商户分类
+     * @param shopTagId
+     * @return
+     */
+    public int removeTag(Long shopTagId,Long shopId){
+        List<ShopTag> shopTag=shopTagMapper.FindShopTag(shopId);
+        for (int i=0;i<shopTag.size();i++){
+            ShopTag tag=shopTag.get(i);
+            int tagId=0;
+            if (shopTagId==tag.getShopTagId()){
+                tagId=tag.getTagId();
+            }
+            if (tag.getTagId()>tagId){
+                int newTagId=tag.getTagId();
+                shopTagMapper.updateTag(shopTagId,newTagId);
+            }
+        }
+        return shopTagMapper.removeTag(shopTagId);
+    };
+
+    /**
+     * 更新shop_tag的tag_name名
+     * @param shopTag
+     * @return
+     */
+    public int updateTagName(ShopTag shopTag){
+        return shopTagMapper.updateTagName(shopTag);
     };
 }

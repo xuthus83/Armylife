@@ -1,6 +1,8 @@
 server:
   port: 9122
 spring:
+  profiles:
+    active: dev
   resources:
     chain:
       strategy:
@@ -14,7 +16,7 @@ spring:
     suffix: .html
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
+    url: 127.0.0.1:3306/armylife?serverTimezone=UTC
     username: root
     password: root
     hikari:
@@ -22,7 +24,8 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 118.31.121.141:8848
+        server-addr: 127.0.0.1:8848
+        ip: 127.0.0.1
     sentinel:
       transport:
         port: 8719
@@ -36,7 +39,8 @@ spring:
   redis:
     timeout: 3600s
     port: 6379
-    host: 127.0.0.1
+    host: 118.31.121.141
+    password: Kzr20190603.
   application:
     name: payservice
   aop:
@@ -48,13 +52,17 @@ logging:
   level:
     cn.armylife.payments.Mapper: debug
     com.alibaba.nacos.client.naming: error
-wechat:
-  users:
-    token:
-    appId: wx9e015ae632859f8e
-    appSecret: 9dcb718a89ef427d35aa10d69affcde5
-    callBackSlientUrl:
-    MCHID:
-    wxorder:
-    KEY:
-    NOTIFYURL:
+#hystrix的超时时间
+hystrix:
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: true
+        isolation:
+          thread:
+            timeoutInMilliseconds: 90000
+#ribbon的超时时间
+ribbon:
+  ReadTimeout: 30000
+  ConnectTimeout: 30000

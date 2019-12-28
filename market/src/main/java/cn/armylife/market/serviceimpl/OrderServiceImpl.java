@@ -45,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired HairvipMapper hairvipMapper;
 
+    @Autowired PaymentsMapper paymentsMapper;
+
     @Autowired
     RedisDao redisDao;
 
@@ -57,14 +59,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public int insert(ShopOrder shopOrder,List<Product> productLists,String orderExpress){
+    public int insert(ShopOrder shopOrder,List<Product> productLists,Integer orderExpress){
         OrderDetail orderDetail=new OrderDetail();
         Product product=new Product();
         String productIds="";
         String firstproduct="";
+        Long shopId= shopOrder.getShopId();
+        Member shop=memberService.selectMemberforId(shopId);
         logger.info("orderExpress:"+orderExpress);
-        if (!orderExpress.equals("1")){
-        for (int i=0;i<productLists.size();i++) {
+        BigDecimal orderTotal=shopOrder.getOrderTotal();
+        if (orderExpress==0){
+            for (int i=0;i<productLists.size();i++) {
             logger.info("执行获取商品");
             product=productLists.get(i);
             firstproduct=String.valueOf(productLists.get(0).getProductId());
@@ -72,10 +77,30 @@ public class OrderServiceImpl implements OrderService {
             orderDetail.setOrderDetailPng(product.getProductAvator());
             orderDetail.setOrderDetailTotal(product.getProductTotal());
             orderDetail.setOrderId(shopOrder.getOrdersId());
-            orderDetail.setOrderDetailNum(Integer.valueOf(product.getOrderNum()));
+            int num=Integer.valueOf(product.getOrderNum());
+            orderDetail.setOrderDetailNum(num);
             productIds=productIds+","+product.getProductId();
             orderDetailMapper.insert(orderDetail);
+            if (shop.getAlid().equals("REST0202")){
+                if (shopOrder.getOrdersType()==1||shopOrder.getOrdersType()==2){//获取商品数量餐盒费+1
+                orderTotal=orderTotal.add(product.getProductBoxfee().multiply(new BigDecimal(num)));
+                    logger.info("餐盒金额:"+orderTotal);
+                }
+                else if (shopOrder.getOrdersType()==3){//获取到店人数 餐盒费+1
+                    orderTotal=orderTotal.add(new BigDecimal(shopOrder.getOrdersPeople()+1));
+                    logger.info("到店人数金额:"+orderTotal);
+                }}
         }}
+        if (orderExpress==2){
+            Hairvip hairvip=hairvipMapper.selectHairvip(shopOrder.getStuId());
+            if (hairvip!=null){
+                int number=Integer.valueOf(hairvip.getHairvipNum());
+                hairvip.setHairvipNum(String.valueOf(number-1));
+                hairvipMapper.updateHair(hairvip);
+            }
+            shopOrder.setOrdersStatus("3");
+        }
+        shopOrder.setOrderTotal(orderTotal);
         shopOrder.setFirstProduct(firstproduct);
         shopOrder.setProductId(productIds);
         return shopOrderMapper.insert(shopOrder);
@@ -114,12 +139,33 @@ public class OrderServiceImpl implements OrderService {
     };
 
     /**
-     * 外卖结束订单
-     * @param orderID
+     * 更新用户金额
+     * @param ordersId
      * @return
      */
-    public int orderFulfillment(Long orderID){
-        ShopOrder shopOrder=shopOrderMapper.selectOrder(orderID);
+    public int updateMemberTotal(Long ordersId){
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        ShopOrder shopOrder=new ShopOrder();
+        shopOrder.setOrdersStatus("6");
+        shopOrder.setOrdersId(ordersId);
+        shopOrder.setEndTime(new Date());
+        ShopOrder order=shopOrderMapper.selectOrder(ordersId);
+        Member shop=memberService.selectMemberforId(order.getShopId());
+        BigDecimal oldtotal=shop.getMemberTotal();
+        BigDecimal newtotal=oldtotal.add(order.getOrderTotal());
+        int msg= shopOrderMapper.orderFulfillment(newtotal,shop.getMemberId());
+        if (msg==0){
+            return 0;
+        }
+        return shopOrderMapper.updateShopOrder(shopOrder);
+    };
+    /**
+     * 外卖结束订单
+     * @param orderId
+     * @return
+     */
+    public int orderFulfillment(Long orderId){
+        ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
 
         //获取商家Id,更新商家金额
         Long shopId=shopOrder.getShopId();
@@ -130,18 +176,22 @@ public class OrderServiceImpl implements OrderService {
         shopOrderMapper.orderFulfillment(newAmount,shopId);
 
         //获取跑腿Id,更新跑腿金额
-        Long deliveryId=shopOrder.getDeliveryOrder().getDeliveryUserId();
+        Long deliveryId=shopOrderMapper.selectdeliveryForOrder(orderId).getDeliveryUserId();
         Member delivery=memberService.selectMemberforId(deliveryId);
         BigDecimal oldTotal=delivery.getMemberTotal();
         BigDecimal addTotal=shopOrder.getDeliveryTotal();
-        BigDecimal newTotal=oldTotal.add(addTotal);
+        BigDecimal num=new BigDecimal(0.9);
+        BigDecimal newmoney=addTotal.multiply(num);
+        logger.info("跑腿送达后的钱:"+newmoney+"跑腿费:"+addAmount+"本金:"+oldTotal);
+        BigDecimal newTotal=oldTotal.add(newmoney);
         shopOrderMapper.orderFulfillment(newTotal,deliveryId);
 
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
         ShopOrder order=new ShopOrder();
-        order.setOrdersId(orderID);
+        order.setOrdersId(orderId);
         order.setCreatTime(sdf.format(new Date()));
-        order.setOrdersStatus("3");
+        order.setOrdersStatus("6");
+        order.setEndTime(new Date());
         return shopOrderMapper.updateShopOrder(order);
     };
 
@@ -188,30 +238,29 @@ public class OrderServiceImpl implements OrderService {
      * 可查询跑腿订单
      * @return
      */
-    public Page<DeliveryOrder> selectAlldelivery(){
+    public List<DeliveryOrder> selectAlldelivery(){
         return shopOrderMapper.selectAlldelivery();
     };
 
     /**
-     * 得到当前商铺排队人数
+     * 得到当前商铺排队人数(通过订单Id)
      * @return
      */
-    public int getShopPeople(String shopId){
-        String number=redisDao.getValue(shopId);
-        return Integer.valueOf(number);
+    public int getShopPeople(Long ordersId){
+        return shopOrderMapper.shopPeople(ordersId);
     };
-    //增加店铺排队人数
-    public void upShopPeople(String shopId){
-        String number=redisDao.getValue(shopId);
-        int num=Integer.valueOf(number)+1;
-        redisDao.setKey(shopId,String.valueOf(num));
-    };
-    //减少店铺排队人数
-    public void downShopPeople(String shopId){
-        String number=redisDao.getValue(shopId);
-        int num=Integer.valueOf(number)-1;
-        redisDao.setKey(shopId,String.valueOf(num));
-    };
+//    //增加店铺排队人数
+//    public void upShopPeople(String shopId){
+//        String number=redisDao.getValue(shopId);
+//        int num=Integer.valueOf(number)+1;
+//        redisDao.setKey(shopId,String.valueOf(num));
+//    };
+//    //减少店铺排队人数
+//    public void downShopPeople(String shopId){
+//        String number=redisDao.getValue(shopId);
+//        int num=Integer.valueOf(number)-1;
+//        redisDao.setKey(shopId,String.valueOf(num));
+//    };
 
     /**
      * 月销
@@ -256,30 +305,40 @@ public class OrderServiceImpl implements OrderService {
      */
     public int confirmRefund(Long orderId){
         ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
-        BigDecimal totalfee=shopOrder.getOrderTotal().add(shopOrder.getDeliveryTotal());
+        BigDecimal totalfee=null;
+        try {
+            if (shopOrder.getDeliveryTotal() != null) {
+                totalfee = shopOrder.getOrderTotal().add(shopOrder.getDeliveryTotal());
+            }else {
+            totalfee=shopOrder.getOrderTotal();}
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            totalfee=shopOrder.getOrderTotal();
+        }
+        logger.info("退款资金"+totalfee);
         String desc="订单退款";
         String refundOrderId=String.valueOf(shopOrder.getOrdersId());
-        BigDecimal orderTotal=shopOrder.getOrderTotal().add(shopOrder.getDeliveryTotal());
+        BigDecimal orderTotal=totalfee;
         String order=String.valueOf(shopOrder.getOrdersId());
-        String total=orderTotal.toString();
-        String body="申请退款";
         Payments payments=payMentsService.selectPaments(orderId);
         int msg=1;
         switch (payments.getPayApp()){
-            case "1":
-                msg=payMentsService.Alipayrefund(order,desc,total,body);
-                break;
             case "2":
-                msg=payMentsService.WechatPayTransfer(Long.getLong(order),totalfee,orderTotal,"取消订单");
+                logger.info("支付宝退款");
+                msg=payMentsService.Alipayrefund(String.valueOf(orderId),"退款申请",totalfee.toString(),"取消订单");
+                if (msg==0){
+                    return 0;
+                }
+                break;
+            case "1":
+                logger.info("微信退款");
+                msg=payMentsService.WechatPayTransfer(Long.valueOf(order),totalfee,orderTotal,"取消订单");
+                if (msg==0){
+                    return 0;
+                }
                 break;
         }
-        if (msg==0){
-            return 0;
-        }
-        if (payMentsService.Alipayrefund(refundOrderId,desc,total,body)==0){
-            return 0;
-        };
-        return shopOrderMapper.confirmOrder(orderId);
+        return shopOrderMapper.confirmRefund(orderId);
     };
 
     /**
@@ -288,39 +347,41 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     public int afterOrderRefund(Long orderId, BigDecimal total){
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
         Member member=shopOrder.getMember();
-        BigDecimal totalfee=shopOrder.getOrderTotal().add(shopOrder.getDeliveryTotal());
+        BigDecimal totalfee=shopOrder.getOrderTotal();
         Payments payments=payMentsService.selectPaments(orderId);
         String order=String.valueOf(orderId);
         String desc="订单退款";
         String body="餐后结算";
         String amount=total.toString();
+        BigDecimal oldTotal=member.getMemberTotal();
+        BigDecimal newTotal=oldTotal.subtract(total);
+        shopOrderMapper.orderFulfillment(newTotal,shopOrder.getShopId());
+        Payments payments1=new Payments();
+        payments1.setPayRefund(1);
+        payments1.setRefundTotal(total);
+        payments1.setRefundDesc("订单结算");
+        payments1.setPaymentsId(payments.getPaymentsId());
+        payments1.setRefunsTime(sdf.format(new Date()));
+        shopOrderMapper.updatePayments(payments1);
         int msg=1;
         switch (payments.getPayApp()){
-            case "1":
-                msg=payMentsService.Alipayrefund(order,desc,amount,body);
-                break;
             case "2":
-                msg=payMentsService.WechatPayTransfer(Long.getLong(order),totalfee,total,"餐后结算");
+                msg=payMentsService.Alipayrefund(order,body,amount,desc);
+                break;
+            case "1":
+                msg=payMentsService.WechatPayTransfer(orderId,total,totalfee,"餐后结算");
                 break;
         }
         if (msg==0){
             return 0;
         }
         ShopOrder endOrder=new ShopOrder();
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date date=new Date();
         endOrder.setEndTime(date);
         endOrder.setOrdersId(orderId);
-        DeliveryOrder deliveryOrder=deliveryOrderMapper.selectDeliveryFororderId(orderId);
-        Member delivery=memberService.selectMemberforId(deliveryOrder.getDeliveryUserId());
-        BigDecimal deliverytotal=delivery.getMemberTotal();
-        BigDecimal newtotel=deliverytotal.add(total);
-        Member newdelivery=new Member();
-        newdelivery.setMemberId(delivery.getMemberId());
-        newdelivery.setMemberTotal(newtotel);
-        int message=memberService.updateMember(newdelivery);
         return shopOrderMapper.endOrder(shopOrder);
 
     };
@@ -339,5 +400,28 @@ public class OrderServiceImpl implements OrderService {
     public Page<ShopOrder> selectEndOrder(Long stuId){
         return shopOrderMapper.selectEndOrder(stuId);
     };
+
+    public List<ShopOrder> selectAfterOrder(){
+        return shopOrderMapper.selectAfterOrder();
+    };
+
+    @Override
+    public int updateHairAmount(String total,Long memberId){
+        Member member=memberService.selectMemberforId(memberId);
+        BigDecimal oldtotal=member.getMemberTotal();
+        BigDecimal newtotal=oldtotal.add(new BigDecimal(total));
+        return shopOrderMapper.orderFulfillment(newtotal,memberId);
+    };
+
+    /**
+     * 查找支付订单
+     * @param paymentsId
+     * @return
+     */
+    @Override
+    public Payments selectPaymentsForId(Long paymentsId){
+        return paymentsMapper.selectPaymentsForId(paymentsId);
+    };
+
 
 }

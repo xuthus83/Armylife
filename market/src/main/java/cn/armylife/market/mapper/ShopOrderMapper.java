@@ -1,6 +1,7 @@
 package cn.armylife.market.mapper;
 
 import cn.armylife.common.domain.DeliveryOrder;
+import cn.armylife.common.domain.Payments;
 import cn.armylife.common.domain.ShopOrder;
 import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
@@ -72,7 +73,9 @@ public interface ShopOrderMapper {
      * 可查询跑腿订单
      * @return
      */
-    Page<DeliveryOrder> selectAlldelivery();
+    List<DeliveryOrder> selectAlldelivery();
+
+    DeliveryOrder selectdeliveryForOrder(Long ordersId);
 
     /**
      * 更新订单状态
@@ -144,4 +147,24 @@ public interface ShopOrderMapper {
      * @return
      */
     int orderFulfillment(@Param("memberTotal" )BigDecimal memberTotal,@Param("memberId")Long memberId);
+
+    /**
+     * 查询子订单
+     * @return
+     */
+    List<ShopOrder> selectAfterOrder();
+
+    /**
+     * 查询当前订单的排队人数
+     * @param ordersId
+     * @return
+     */
+    int shopPeople(Long ordersId);
+
+    /**
+     * 更新退款信息
+     * @param payments
+     * @return
+     */
+    int updatePayments(Payments payments);
 }

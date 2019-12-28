@@ -2,9 +2,15 @@ package cn.armylife.member.serviceimpl;
 
 //import Users;
 
-import cn.armylife.common.domain.*;
-import cn.armylife.member.mapper.*;
+import cn.armylife.common.domain.Member;
+import cn.armylife.common.domain.Product;
+import cn.armylife.common.domain.Transactions;
+import cn.armylife.member.mapper.AlidMapper;
+import cn.armylife.member.mapper.MemberMapper;
+import cn.armylife.member.mapper.ProductMapper;
+import cn.armylife.member.mapper.TransactionsMapper;
 import cn.armylife.member.service.MemberService;
+import cn.armylife.member.util.IsAlid;
 import com.github.pagehelper.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +28,7 @@ public class MemberServiceImpl implements MemberService {
     @Autowired private MemberMapper memberMapper;
     @Autowired private AlidMapper alidMapper;
     @Autowired private ProductMapper productMapper;
+    @Autowired private IsAlid isa;
 
     @Override
     public Long insert(Member record){
@@ -93,8 +100,8 @@ public class MemberServiceImpl implements MemberService {
      * @param phone
      * @return
      */
-    public Boolean inspectMemberForPhone(String phone){
-        Member member=memberMapper.inspectMemberForPhone(phone);
+    public Boolean inspectMemberForPhone(String phone,String type){
+        Member member=memberMapper.inspectMemberForPhone(phone,type);
         if (member==null){
             return true;
         }
@@ -107,11 +114,11 @@ public class MemberServiceImpl implements MemberService {
      * @return
      */
     public Boolean inspectShopForALID(String alid){
-        Alid alids=alidMapper.inspectShopForALID(alid);
-        if (alids==null){
-            return true;
-        }
-        return false;
+       if(alid.equals("FRUI0101")||alid.equals("REST0202")||alid.equals("BOOK0303")||alid.equals("SHOT0404")||alid.equals("HAIR0505")||alid.equals("MTEA0606")){
+           return true;
+       }else {
+           return false;
+       }
     };
 
     /**
@@ -169,13 +176,21 @@ public class MemberServiceImpl implements MemberService {
     };
 
     /**
-     * 设置商家的器送价格(total)
+     * 设置商家的起送价格(total)
      * @param shopId
      * @param total
      * @return
      */
     public int isdeliver(Long shopId,String total){
         return memberMapper.isdeliver(shopId,total);
+    };
+
+    @Override
+    public Member loginDev(String code){
+        Member member=new Member();
+        member.setMemberWechat(code);
+        member.setMemberType("1");
+        return memberMapper.inspectMemberForOpenId(member);
     };
 
 }

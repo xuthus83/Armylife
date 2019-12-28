@@ -69,4 +69,7 @@ public class WechatServiceImpl implements WechatService {
         msg.put(3,str2);
         return msg;
     }
+
+
+
 }

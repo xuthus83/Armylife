@@ -5,11 +5,9 @@ import cn.armylife.common.util.NumberID;
 import cn.armylife.payservice.domain.Alipay;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
+import com.alipay.api.CertAlipayRequest;
 import com.alipay.api.DefaultAlipayClient;
-import com.alipay.api.domain.AlipayFundTransUniTransferModel;
-import com.alipay.api.domain.AlipayTradePagePayModel;
-import com.alipay.api.domain.AlipayTradePageRefundModel;
-import com.alipay.api.domain.Participant;
+import com.alipay.api.domain.*;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
@@ -29,7 +27,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static cn.armylife.payservice.config.AlipayConfig.CHARSET;
+import static cn.armylife.common.config.AlipayConfig.CHARSET;
 
 @Controller
 public class AlipayController {
@@ -40,8 +38,7 @@ public class AlipayController {
 
 
     @RequestMapping("/alipayOrder")
-    @ResponseBody
-    public Alipay alipay(HttpServletRequest request, HttpServletResponse httpServletResponse,String WIDout_trade_no, String WIDsubject, String WIDtotal_amount, String WIDbody,String passback_params) throws AlipayApiException, IOException {
+    @ResponseBody public Alipay alipayOfOrder(String WIDout_trade_no, String WIDsubject, String WIDtotal_amount, String WIDbody,String passback_params,HttpServletResponse httpServletResponse) throws AlipayApiException, IOException {
         // 商户订单号，商户网站订单系统中唯一订单号，必填
         String out_trade_no =WIDout_trade_no;//String.valueOf( NumberID.nextId(port));//  new String(request.getParameter("WIDout_trade_no"));
         logger.info("订单号"+out_trade_no);
@@ -59,13 +56,22 @@ public class AlipayController {
         Calendar nowTime = Calendar.getInstance();
         nowTime.add(Calendar.MINUTE, 90);
         String time_expire=sdf.format(nowTime.getTime());
-        logger.info(time_expire);
         /**********************/
         // SDK 公共请求类，包含公共请求参数，以及封装了签名与验签，开发者无需关注签名与验签
         //调用RSA签名方式
-        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.ALIPAY_PUBLIC_KEY, AlipayConfig.SIGNTYPE);
+        CertAlipayRequest certAlipayRequest = new CertAlipayRequest();
+        certAlipayRequest.setServerUrl(AlipayConfig.URL);
+        certAlipayRequest.setAppId(AlipayConfig.APPID);
+        certAlipayRequest.setPrivateKey(AlipayConfig.RSA_PRIVATE_KEY);
+        certAlipayRequest.setFormat("json");
+        certAlipayRequest.setCharset(CHARSET);
+        certAlipayRequest.setSignType(AlipayConfig.SIGNTYPE);
+        certAlipayRequest.setCertPath(AlipayConfig.app_cert_path);
+        certAlipayRequest.setAlipayPublicCertPath(AlipayConfig.alipay_cert_path);
+        certAlipayRequest.setRootCertPath(AlipayConfig.alipay_root_cert_path);
+        DefaultAlipayClient client = new DefaultAlipayClient(certAlipayRequest);
 //        AlipayTradeWapPayRequest alipay_request=new AlipayTradeWapPayRequest();
-        AlipayTradePagePayRequest alipay_request = new AlipayTradePagePayRequest();
+        AlipayTradeWapPayRequest alipay_request = new AlipayTradeWapPayRequest();
         // 封装请求支付信息
         AlipayTradePagePayModel model=new AlipayTradePagePayModel();
         model.setOutTradeNo(out_trade_no);
@@ -84,14 +90,14 @@ public class AlipayController {
 
         alipay_request.getApiMethodName();
 
-        AlipayTradePagePayResponse response=null;
+        AlipayTradeWapPayResponse response=null;
 
         try {
-            response=client.pageExecute(alipay_request,"get");
+            response=client.pageExecute(alipay_request);
         }catch (AlipayApiException e){
+            logger.info("失败了:AlipayApiException");
             e.printStackTrace();
         }
-        logger.info("返回数据:"+response.getBody());
         if (response.isSuccess()) {
             logger.info("调用成功");
         }else {
@@ -142,7 +148,7 @@ public class AlipayController {
         //交易状态
         String trade_status = new String(request.getParameter("trade_status").getBytes("ISO-8859-1"),"UTF-8");
 
-        boolean verify_result = AlipaySignature.rsaCheckV1(params, AlipayConfig.ALIPAY_PUBLIC_KEY, AlipayConfig.CHARSET, "RSA2");
+        boolean verify_result = AlipaySignature.rsaCheckV1(params, AlipayConfig.alipay_cert_path, AlipayConfig.CHARSET, "RSA2");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
 
 
@@ -175,11 +181,23 @@ public class AlipayController {
         /**********************/
         // SDK 公共请求类，包含公共请求参数，以及封装了签名与验签，开发者无需关注签名与验签
         //调用RSA签名方式
-        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.ALIPAY_PUBLIC_KEY, AlipayConfig.SIGNTYPE);
+        //调用RSA签名方式
+        CertAlipayRequest certAlipayRequest = new CertAlipayRequest();
+        certAlipayRequest.setServerUrl(AlipayConfig.URL);
+        certAlipayRequest.setAppId(AlipayConfig.APPID);
+        certAlipayRequest.setPrivateKey(AlipayConfig.RSA_PRIVATE_KEY);
+        certAlipayRequest.setFormat("json");
+        certAlipayRequest.setCharset(CHARSET);
+        certAlipayRequest.setSignType(AlipayConfig.SIGNTYPE);
+        certAlipayRequest.setCertPath(AlipayConfig.app_cert_path);
+        certAlipayRequest.setAlipayPublicCertPath(AlipayConfig.alipay_cert_path);
+        certAlipayRequest.setRootCertPath(AlipayConfig.alipay_root_cert_path);
+        DefaultAlipayClient client = new DefaultAlipayClient(certAlipayRequest);
+//        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.alipay_cert_path, AlipayConfig.SIGNTYPE);
 //        AlipayTradeWapPayRequest alipay_request=new AlipayTradeWapPayRequest();
-        AlipayTradePageRefundRequest alipay_request = new AlipayTradePageRefundRequest();
+        AlipayTradeRefundRequest alipay_request = new AlipayTradeRefundRequest();
         // 封装请求支付信息
-        AlipayTradePageRefundModel model=new AlipayTradePageRefundModel();
+        AlipayTradeRefundModel model=new AlipayTradeRefundModel();
         model.setOutTradeNo(out_trade_no);
         model.setRefundReason(subject);
         model.setRefundAmount(refund_amount);
@@ -188,14 +206,14 @@ public class AlipayController {
         // 设置异步通知地址
         alipay_request.setNotifyUrl("http://www.xuthus83.cn:6081/PayMents/AlipayRefundCallback");
         // 设置同步地址
-        alipay_request.setReturnUrl(AlipayConfig.refund_url);
+        alipay_request.setReturnUrl(AlipayConfig.return_url);
 
         alipay_request.getApiMethodName();
 
-        AlipayTradePageRefundResponse response=null;
+        AlipayTradeRefundResponse response=null;
 
         try {
-            response=client.pageExecute(alipay_request,"get");
+            response=client.certificateExecute(alipay_request);
         }catch (AlipayApiException e){
             e.printStackTrace();
         }
@@ -228,7 +246,19 @@ public class AlipayController {
 
         // SDK 公共请求类，包含公共请求参数，以及封装了签名与验签，开发者无需关注签名与验签
         //调用RSA签名方式
-        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.ALIPAY_PUBLIC_KEY, AlipayConfig.SIGNTYPE);
+        //调用RSA签名方式
+        CertAlipayRequest certAlipayRequest = new CertAlipayRequest();
+        certAlipayRequest.setServerUrl(AlipayConfig.URL);
+        certAlipayRequest.setAppId(AlipayConfig.APPID);
+        certAlipayRequest.setPrivateKey(AlipayConfig.RSA_PRIVATE_KEY);
+        certAlipayRequest.setFormat("json");
+        certAlipayRequest.setCharset(CHARSET);
+        certAlipayRequest.setSignType(AlipayConfig.SIGNTYPE);
+        certAlipayRequest.setCertPath(AlipayConfig.app_cert_path);
+        certAlipayRequest.setAlipayPublicCertPath(AlipayConfig.alipay_cert_path);
+        certAlipayRequest.setRootCertPath(AlipayConfig.alipay_root_cert_path);
+        DefaultAlipayClient client = new DefaultAlipayClient(certAlipayRequest);
+//        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.alipay_cert_path, AlipayConfig.SIGNTYPE);
         Participant participant = new Participant();
         participant.setIdentity(identity);
         participant.setIdentityType("ALIPAY_LOGON_ID");
@@ -245,11 +275,11 @@ public class AlipayController {
 
         AlipayFundTransUniTransferRequest uniTransferRequest = new AlipayFundTransUniTransferRequest();
         uniTransferRequest.setBizModel(uniTransferModel);
-        uniTransferRequest.setNotifyUrl("http://www.xuthus83.cn:6081/PayMents/AlipayRefundCallback");
-        uniTransferRequest.setReturnUrl("http://www.xuthus83.cn:6081/PayMents/AlipayRefundCallback");
+        uniTransferRequest.setNotifyUrl("https://www.armylife.cn/api/PayMents/AlipayRefundCallback");
+        uniTransferRequest.setReturnUrl("https://www.armylife.cn/api/PayMents/AlipayRefundCallback");
         AlipayFundTransUniTransferResponse response1 = null;
         try {
-            response1 = client.execute(uniTransferRequest, "get");
+            response1 = client.pageExecute(uniTransferRequest, "get");
         } catch (AlipayApiException e) {
             e.printStackTrace();
             logger.info("错误:" + e);
@@ -264,7 +294,7 @@ public class AlipayController {
     @RequestMapping("AlipayAccessToken")
     @ResponseBody
     public Map<Integer,String> AliPayUserInfo(String auth_code) throws AlipayApiException{
-        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.ALIPAY_PUBLIC_KEY, AlipayConfig.SIGNTYPE);
+        AlipayClient client = new DefaultAlipayClient(AlipayConfig.URL, AlipayConfig.APPID, AlipayConfig.RSA_PRIVATE_KEY, AlipayConfig.FORMAT, CHARSET, AlipayConfig.alipay_cert_path, AlipayConfig.SIGNTYPE);
         AlipaySystemOauthTokenRequest tokenRequest=new AlipaySystemOauthTokenRequest();
         tokenRequest.setCode(auth_code);
         tokenRequest.setGrantType("authorization_code");

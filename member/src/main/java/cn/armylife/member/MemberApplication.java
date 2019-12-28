@@ -12,6 +12,7 @@ import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -27,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableCircuitBreaker
 @MapperScan("cn.armylife.member.mapper")
 @EnableTransactionManagement
+@EnableScheduling
 public class MemberApplication {
 
     public static void main(String[] args) {

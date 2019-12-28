@@ -47,4 +47,6 @@ public interface PaymentsMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(Payments record);
+
+    Payments selectPaymentsForId(Long paymentsId);
 }

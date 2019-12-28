@@ -150,7 +150,13 @@
             <artifactId>dts-subscribe-sdk</artifactId>
             <version>5.0.0.1.beta</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.jd.open.jdk.api</groupId>
+            <artifactId>com.jugan.util</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/jd-cps-client-2.2.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -166,6 +172,15 @@
     </dependencyManagement>
 
     <build>
+        <resources>
+            <resource>
+                <directory>lib</directory>
+                <targetPath>BOOT-INF/lib/</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

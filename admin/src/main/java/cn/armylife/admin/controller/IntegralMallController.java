@@ -30,7 +30,9 @@ public class IntegralMallController {
 
     /**
      * 积分商城商品添加
-     * @param record
+     * @param file
+     * @param pathName
+     * @param request
      * @return
      */
     @RequestMapping("picture")
@@ -78,8 +80,8 @@ public class IntegralMallController {
     /**
      * 上传图片
      *  原名称
-     * @param request 请求
-     * @param path_deposit 存放位置(路径)
+     * @param path 请求
+     * @param pathName 存放位置(路径)
      * @param file 文件
      * @param isRandomName 是否随机名称
      * @return 完整文件路径

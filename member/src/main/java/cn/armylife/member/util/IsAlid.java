@@ -1,14 +1,14 @@
-package cn.armylife.common.util;
+package cn.armylife.member.util;
 
 import cn.armylife.common.domain.Alid;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
-public class isAlid {
+@Service
+public class IsAlid {
 
-    private boolean isAlid(String code){
+    public static boolean isAlid(String code){
         Alid alid=new Alid();
         List<String> alids=alid.getAppId();
         for (int i=0;i<alids.size();i++){

@@ -119,4 +119,26 @@ public interface ProductService {
 
     int orderdetailinsert(OrderDetail record);
 
+    /**
+     * 查询认领会员
+     * @param userName
+     * @param groupNumber
+     * @return
+     */
+    int FindVip(String userName,String groupNumber,Long memberId);
+
+    /**
+     * 删除商户分类
+     * @param shopTagId
+     * @return
+     */
+    int removeTag(Long shopTagId,Long shopId);
+
+    /**
+     * 更新shop_tag的tag_name名
+     * @param shopTag
+     * @return
+     */
+    int updateTagName(ShopTag shopTag);
+
 }

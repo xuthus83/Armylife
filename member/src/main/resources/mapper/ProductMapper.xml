@@ -8,6 +8,7 @@
     -->
     <id column="product_id" jdbcType="INTEGER" property="productId" />
     <result column="shop_id" jdbcType="INTEGER" property="shopId" />
+    <result column="tag_id" jdbcType="INTEGER" property="tagId" />
     <result column="product_total" jdbcType="DECIMAL" property="productTotal" />
     <result column="product_name" jdbcType="VARCHAR" property="productName" />
     <result column="product_type" jdbcType="VARCHAR" property="productType" />
@@ -81,7 +82,7 @@
     where product_id=#{productId}
   </update>
   <select id="productForTag" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select * from product where shop_id=#{shopId}
+    select * from product where shop_id=#{shopId} and status=0
   </select>
 
 </mapper>

@@ -1,6 +1,7 @@
 package cn.armylife.market;
 
 import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -25,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableHystrixDashboard
 @EnableCircuitBreaker
 @EnableTransactionManagement
+@MapperScan("cn.armylife.market.mapper")
 public class MarketApplication {
 
     public static void main(String[] args) {

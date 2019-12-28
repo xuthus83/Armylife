@@ -1,6 +1,6 @@
 package cn.armylife.payservice.utils;
 
-import cn.armylife.payservice.config.AlipayConfig;
+import cn.armylife.common.config.AlipayConfig;
 
 import java.io.FileWriter;
 import java.io.IOException;

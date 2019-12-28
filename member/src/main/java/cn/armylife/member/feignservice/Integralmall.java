@@ -1,13 +1,13 @@
-package cn.armylife.payments.feignservice;
+package cn.armylife.member.feignservice;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(value = "integralservice" )
-public interface integral {
+@FeignClient(value = "integralservice")
+public interface Integralmall {
 
-    @RequestMapping(value = "integralIncrease",method = RequestMethod.GET)
-    int integralIncrease(@RequestParam Integer integral);
+    @RequestMapping(value = "registerIntegral",method = RequestMethod.GET)
+    int registerIntegral(@RequestParam Long memberId);
 }

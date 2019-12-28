@@ -14,7 +14,7 @@ import java.util.List;
 public interface OrderService {
 
 
-    int insert(ShopOrder record, List<Product> productList,String orderExpress);
+    int insert(ShopOrder record, List<Product> productList,Integer orderExpress);
 
     int VIPinsert(ShopOrder shopOrder);
 
@@ -66,17 +66,24 @@ public interface OrderService {
      * 可查询跑腿订单
      * @return
      */
-    Page<DeliveryOrder> selectAlldelivery();
+    List<DeliveryOrder> selectAlldelivery();
+
+    /**
+     * 更新用户金额
+     * @param ordersId
+     * @return
+     */
+    int updateMemberTotal(Long ordersId);
 
     /**
      * 得到当前商铺排队人数
      * @return
      */
-    int getShopPeople(String shopId);
-    //增加店铺排队人数
-    void upShopPeople(String shopId);
-    //减少店铺排队人数
-    void downShopPeople(String shopId);
+    int getShopPeople(Long ordersId);
+//    //增加店铺排队人数
+//    void upShopPeople(String shopId);
+//    //减少店铺排队人数
+//    void downShopPeople(String shopId);
 
     /**
      * 月销
@@ -140,5 +147,28 @@ public interface OrderService {
      * @return
      */
     int orderFulfillment(Long orderID);
+
+    /**
+     * 查找子订单
+     * @return
+     */
+    List<ShopOrder> selectAfterOrder();
+
+    /**
+     * 更新理发店金额
+     * @param total
+     * @param memberId
+     * @return
+     */
+    int updateHairAmount(String total,Long memberId);
+
+    /**
+     * 查找支付订单
+     * @param paymentsId
+     * @return
+     */
+    Payments selectPaymentsForId(Long paymentsId);
+
+
 
 }

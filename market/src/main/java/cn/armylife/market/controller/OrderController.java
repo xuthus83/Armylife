@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
@@ -54,26 +55,35 @@ public class OrderController {
      */
     @RequestMapping("creatShopOrder")
     @ResponseBody
-    public Long creatShopOrder(ShopOrder shopOrder,String orderExpress, HttpServletRequest request){
+    public Long creatShopOrder(ShopOrder shopOrder,Integer orderExpress, HttpServletRequest request) throws ParseException,Exception {
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date=new Date();
         String creatime=sdf.format(date);
-        shopOrder.setCreatTime(creatime);
-        shopOrder.setOrdersStatus("0");
-        Long int1= NumberID.nextId(port);
-        shopOrder.setOrdersId(int1);
-        shopOrder.setStuId(member.getMemberId());
+            shopOrder.setCreatTime(creatime);
+            shopOrder.setOrdersStatus("0");
+        try {
+            shopOrder.setEndTime(sdf.parse(shopOrder.getAppintment()));
+        }catch (NullPointerException e){
+            e.printStackTrace();
+//            shopOrder.setEndTime(new Date("0000-00-00 00:00:00"));
+        }
+            Long int1 = NumberID.nextId(port);
+            shopOrder.setOrdersId(int1);
+            shopOrder.setStuId(member.getMemberId());
+            if (shopOrder.getDeliveryTotal() != null) {
+                shopOrder.setIsShow(1);
+            }
         logger.info("SopOrder:"+shopOrder);
         List<Product> productList=new ArrayList<>();
         List<OrderDetail> expressList=new ArrayList<>();
-        ListOperations<String, Object> lo = redisTemplate.opsForList();
-        productList=(List<Product>) lo.index("userId-"+member.getMemberId()+shopOrder.getShopId(), 0);
+        ListOperations<String, Object> lo = redisTemplate.opsForList();;
+        ListOperations<String, OrderDetail> ll = redisTemplate.opsForList();
+        productList=(List<Product>) lo.index("userId-"+member.getMemberId()+"s"+shopOrder.getShopId(), 0);
         logger.info("orderExpress:"+orderExpress);
-        try {
-            if (orderExpress.equals("1")){
-            ListOperations<String, OrderDetail> ll = redisTemplate.opsForList();
+    try {
+         if (orderExpress==1){
             for (int i=0;i<ll.size("userId-"+member.getMemberId());i++){
                 shopOrder.setIsdelivery(1);
                 expressList.add(ll.index("userId-"+member.getMemberId(), i));
@@ -83,20 +93,21 @@ public class OrderController {
                 orderDetail.setOrderId(int1);
                 orderService.orderdatailinsert(orderDetail);
             }
-        }else {
-                logger.info("不是快递");
-            orderExpress="0";
+        }else if(orderExpress==2){
+            logger.info("不是快递,是理发会员");
+            orderExpress=2;
         }
     }catch (NullPointerException e){
-            logger.info(""+e);
-            orderExpress="0";
+            logger.info("不是快递:NUll"+e);
+            orderExpress=0;
         }
         int msg =orderService.insert(shopOrder,productList,orderExpress);
         if (msg==0){
             return 0l;
         }
-        lo.rightPop("userId-"+member.getMemberId()+shopOrder.getShopId());
+        lo.rightPop("userId-"+member.getMemberId()+"s"+shopOrder.getShopId());
         lo.rightPop("userId-"+member.getMemberId());
+        logger.info("订单Id"+int1);
         return int1;
     }
 
@@ -110,7 +121,7 @@ public class OrderController {
     @ResponseBody
     public PageInfo<ShopOrder> selectAllForMember(ShopOrder shopOrder, int pageNum,int type, HttpServletRequest request){
         HttpSession session=request.getSession();
-        PageHelper.startPage(pageNum, 10);
+        PageHelper.startPage(pageNum, 100);
         Member member=new Member();
         switch (type){
             case 1:
@@ -141,30 +152,30 @@ public class OrderController {
      */
     @RequestMapping("selectAlldeliveryForMember")
     @ResponseBody
-    public PageInfo<DeliveryOrder> selectAlldeliveryForMember(DeliveryOrder deliveryOrder,int pageNum,HttpServletRequest request){
+    public List<DeliveryOrder> selectAlldeliveryForMember(DeliveryOrder deliveryOrder,HttpServletRequest request){
         HttpSession session=request.getSession();
-        PageHelper.startPage(pageNum, 10);
         Member member=(Member)session.getAttribute("Delivery");
         if (member==null||!member.getMemberType().equals("2")){
             logger.info("用户未登录,阻止进行");
             return null;
         }
-        switch (member.getMemberType()){
-            case "1":
-                deliveryOrder.setDeliveryUserId(member.getMemberId());
-                break;
-            case "2":
-                deliveryOrder.setDeliveryUserId(member.getMemberId());
-                break;
-            default:
-                return null;
-        }
-        PageInfo<DeliveryOrder> pageInfo = new PageInfo<>(orderService.selectAlldeliveryForMember(deliveryOrder));
-        if (pageInfo.getPageNum()==1&pageNum>1){
-            return null;
-        }
+        deliveryOrder.setDeliveryUserId(member.getMemberId());
+        List<DeliveryOrder> pageInfo = orderService.selectAlldeliveryForMember(deliveryOrder);
         return pageInfo;
     };
+
+
+    /**
+     * 查询全部跑腿订单
+     * @return
+     */
+    @RequestMapping("selectAfterOrder")
+    @ResponseBody
+    public List<DeliveryOrder> selectAfterOrder(){
+        List<DeliveryOrder> pageInfo =orderService.selectAlldelivery();
+        return pageInfo;
+    };
+
 
     /**
      * 更新订单信息
@@ -231,9 +242,10 @@ public class OrderController {
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
         Date date=new Date();
         String creattime=sdf.format(date);
-        order.setOrdersStatus("1");
+        order.setOrdersStatus("2");
         order.setCreatTime(creattime);
         order.setOrdersId(ordersId);
+        order.setIsShow(0);
         orderService.endOrders(order);
         return deliveryOrderMapper.insert(deliveryOrder);
     }
@@ -299,28 +311,24 @@ public class OrderController {
     /**
      * 通过ordersId查询订单
      * @param orderIds
-     * @param request
      * @return
      */
     @RequestMapping("selectOrder")
     @ResponseBody
-    public ShopOrder selectOrder(Long orderIds,HttpServletRequest request){
-        HttpSession session=request.getSession();
-//        Member member=(Member)session.getAttribute("Student");
-        return orderService.selectOrder(orderIds);
+    public ShopOrder selectOrder(Long orderIds){
+           ShopOrder shopOrder=orderService.selectOrder(orderIds);
+           return shopOrder;
     }
 
-    /**
+    /**s
      * 查询需要跑腿的订单
-     * @param pageNum
      * @param request
      * @return
      */
     @RequestMapping("selectAlldelivery")
     @ResponseBody
-    public PageInfo<DeliveryOrder> selectAlldelivery(int pageNum,HttpServletRequest request){
+    public List<DeliveryOrder> selectAlldelivery(HttpServletRequest request){
         HttpSession session=request.getSession();
-        PageHelper.startPage(pageNum, 10);
         Member member=new Member();
         try{
             member=(Member)session.getAttribute("Delivery");
@@ -332,21 +340,21 @@ public class OrderController {
             logger.info("用户未登录,阻止进行");
             return null;
         }
-        PageInfo<DeliveryOrder> pageInfo = new PageInfo<>(orderService.selectAlldelivery());
+        List<DeliveryOrder> pageInfo = orderService.selectAlldelivery();
         return pageInfo;
     }
-
-    /**
-     * 得到当前商铺的排队人数
-     * @param request
-     * @param shopId
-     * @return
-     */
-    @RequestMapping("getShopPeople")
-    @ResponseBody
-    public int getShopPeople(HttpServletRequest request,String shopId){
-        return orderService.getShopPeople(shopId);
-    }
+//
+//    /**
+//     * 得到当前商铺的排队人数
+//     * @param request
+//     * @param shopId
+//     * @return
+//     */
+//    @RequestMapping("getShopPeople")
+//    @ResponseBody
+//    public int getShopPeople(Long orderId){
+//        return orderService.getShopPeople(orderId);
+//    }
 
     /**
      * 确认接单
@@ -425,9 +433,22 @@ public class OrderController {
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
         ShopOrder shopOrder=new ShopOrder();
-        shopOrder.setOrdersStatus("6");
+        shopOrder.setOrdersStatus("4");
         shopOrder.setOrdersId(ordersId);
         return orderService.endOrders(shopOrder);
+    }
+
+    /**
+     * 开始消费
+     * @param ordersId
+     * @param request
+     * @return
+     */
+    @RequestMapping("EndProduct")
+    @ResponseBody
+    public int EndProduct(Long ordersId,HttpServletRequest request){
+        HttpSession session=request.getSession();
+        return orderService.updateMemberTotal(ordersId);
     }
 
     /**
@@ -439,9 +460,44 @@ public class OrderController {
     @ResponseBody
     public PageInfo<ShopOrder> selectEndOrder(int pageNum,HttpServletRequest request){
         HttpSession session=request.getSession();
+        PageHelper.startPage(pageNum, 10);
         Member member=(Member)session.getAttribute("Student");
         Long stuId=member.getMemberId();
-        return null;
+        PageInfo<ShopOrder> pageInfo=new PageInfo<>(orderService.selectEndOrder(stuId));
+        return pageInfo;
+    };
+
+    @RequestMapping("updateHairAmount")
+    @ResponseBody
+    public int updateHairAmount(String total,Long memberId,Long paymentsId){
+        if(orderService.selectPaymentsForId(paymentsId)==null){
+            return 0;
+        };
+        return orderService.updateHairAmount(total,memberId);
+    }
+
+    /**
+     * 删除商户分类
+     * @param shopTagId
+     * @return
+     */
+    @RequestMapping("removeTag")
+    @ResponseBody
+    public int removeTag(Long shopTagId,HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member shop=(Member)session.getAttribute("Shop");
+        return productService.removeTag(shopTagId,shop.getMemberId());
+    };
+
+    /**
+     * 更新shop_tag的tag_name名
+     * @param shopTag
+     * @return
+     */
+    @RequestMapping("updateTagName")
+    @ResponseBody
+    public int updateTagName(ShopTag shopTag){
+        return productService.updateTagName(shopTag);
     };
 
 }

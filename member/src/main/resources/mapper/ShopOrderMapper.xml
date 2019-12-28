@@ -94,4 +94,8 @@
     order_total
     from shop_order
   </select>
+
+  <select id="selectTaskOrder" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select * from shop_order where orders_status=1 and creat_time like '%${time}%'
+  </select>
 </mapper>

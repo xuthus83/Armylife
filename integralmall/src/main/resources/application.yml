@@ -1,17 +1,22 @@
 server:
   port: 9132
+
 spring:
+  profiles:
+    active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
+#    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
+    url: jdbc:mysql://rm-bp19258xs6rg675x91o.mysql.rds.aliyuncs.com:3306/armylife?serverTimezone=UTC
     username: root
-    password: root
+    password: Xx960928++
     hikari:
       max-lifetime: 0
   cloud:
     nacos:
       discovery:
         server-addr: 118.31.121.141:8848
+        ip: 129.211.72.16
     sentinel:
       transport:
         port: 8719

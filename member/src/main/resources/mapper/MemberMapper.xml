@@ -134,9 +134,7 @@
       <if test="memberPassword!=null">
         member_password=#{memberPassword},
       </if>
-      <if test="alid!=null">
-        alid=#{alid},
-      </if>
+
       <if test="shopStatus!=null">
         shop_status=#{shopStatus},
       </if>
@@ -149,14 +147,14 @@
      armylife=1 where member_id=#{memberId}
   </set>
   </update>
-<!--  通过用户的openid验证是否注册-->
+<!--  通过用户的memberWechat验证是否注册-->
   <select id="inspectMemberForOpenId" parameterType="cn.armylife.common.domain.Member" resultMap="BaseResultMap">
     select * from member where member_wechat=#{memberWechat} and member_type=#{memberType}
   </select>
 
-  <!--  通过用户的openid验证是否注册-->
+  <!--  通过用户的phone验证是否注册-->
   <select id="inspectMemberForPhone" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select * from member where member_phone=#{phone}
+    select * from member where member_phone=#{phone} and member_type=#{type}
   </select>
 
   <update id="updateDeliveryPhone">
@@ -170,10 +168,9 @@
   <select id="ShopNewForAppId" parameterType="java.lang.String" resultMap="ShopMap">
     select * from member m
     inner join shop_tag st on m.member_id=st.shop_id
-    where armylife=#{appID}
+    where alid=#{appId}
   </select>
   <update id="isdeliver">
     update member set isdeliver=#{total} where member_id=#{shopId}
   </update>
-
 </mapper>

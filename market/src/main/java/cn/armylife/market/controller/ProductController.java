@@ -5,6 +5,7 @@ import cn.armylife.common.domain.*;
 import cn.armylife.common.util.NumberID;
 import cn.armylife.market.config.RedisDao;
 import cn.armylife.market.domain.RankShop;
+import cn.armylife.market.feign.MemberService;
 import cn.armylife.market.service.OrderService;
 import cn.armylife.market.service.ProductService;
 import org.slf4j.Logger;
@@ -41,6 +42,9 @@ public class ProductController {
 
     @Autowired
     OrderService orderService;
+
+    @Autowired
+    MemberService memberService;
 
 
     @Value("${server.port}")
@@ -131,9 +135,18 @@ public class ProductController {
     public int AddProductTag(ShopTag shopTag,HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Shop");
+        Long shopId=member.getMemberId();
         SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd hh/mm/ss");
+        int num=0;
+        try{
+            List<ShopTag> shopTags=productService.selectShopTag(shopId);
+            num=shopTags.size()+1;
+        }catch (NullPointerException e){
+            e.printStackTrace();
+        }
         Date date=new Date();
         String creatTime=sdf.format(date);
+        shopTag.setTagId(num);
         shopTag.setCreatTime(creatTime);
         shopTag.setShopId(member.getMemberId());
         return productService.TagInsert(shopTag);
@@ -149,8 +162,9 @@ public class ProductController {
     public List<ShopTag> selectShopTag(HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Shop");
-        logger.info(member.toString());
-        return productService.selectShopTag(member.getMemberId());
+        logger.info("商家信息"+member.toString());
+        Long shopId=member.getMemberId();
+        return productService.selectShopTag(shopId);
     };
 
     /**
@@ -164,6 +178,10 @@ public class ProductController {
         HttpSession session=request.getSession();
         Member member=(Member) session.getAttribute("Shop");
         product.setShopId(member.getMemberId());
+        if (!member.getAlid().equals("REST0202")){
+            product.setProductBoxfee(new BigDecimal(0));
+        }
+        product.setStatus(0);
         if (member==null){
             logger.info("当前未登录帐号,请前往登录页面!");
             return 2;
@@ -180,11 +198,11 @@ public class ProductController {
             // 后缀名
             // exeName = oldName.substring(oldName.indexOf("."));
             exeName=".png";
-//            File pic = new File("/root/armylife/shopAvatar/" + newName + exeName);
-            File pic = new File("E:\\Temp\\" + newName + exeName);
+            File pic = new File("/home/armylife/shopAvatar/public_html/" + newName + exeName);
+//            File pic = new File("E:\\Temp\\" + newName + exeName);
             // 保存图片到本地磁盘
             file.transferTo(pic);
-            product.setProductAvator("http://api.xuthus83.cn:6081/img/"+newName + exeName);
+            product.setProductAvator("http://pic.armylife.cn/"+newName + exeName);
         }
 
         return productService.insert(product);
@@ -237,8 +255,26 @@ public class ProductController {
     public int AddExpresspingCart(OrderDetail orderDetail,HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
-        ListOperations<String, OrderDetail> lo = redisTemplate.opsForList();
+        logger.info("用户信息",member.toString());
+//        int num=0;
+//        try {
+//            num=(int)redisTemplate.opsForValue().get("NumId-"+member.getMemberId())+1;
+//        }catch (NullPointerException e){
+//            e.printStackTrace();
+//            num=1;
+//        }
+        ListOperations<String, Object> lo = redisTemplate.opsForList();
+//        redisTemplate.opsForValue().set("NumId-"+member.getMemberId(),num);;
         lo.leftPush("userId-"+member.getMemberId(),orderDetail);
+        return 1;
+    }
+
+    @RequestMapping("/ReExpressCart")
+    @ResponseBody
+    public int ReExpresspingCart(int num,HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Student");
+        redisTemplate.opsForList().remove("userId-"+member.getMemberId(),0,num);
         return 1;
     }
 
@@ -271,7 +307,7 @@ public class ProductController {
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
         ListOperations<String, Object> lo = redisTemplate.opsForList();
-        List<Product> productList=(List<Product>) lo.index("userId-"+member.getMemberId()+shopId, 0);
+        List<Product> productList=(List<Product>) lo.index("userId-"+member.getMemberId()+"s"+shopId, 0);
         return productList;
     }
 
@@ -291,7 +327,13 @@ public class ProductController {
         try{
             List<Product> products=productService.rankForProduct(shopId);
             String day=orderService.rankDayPayForShop(shopId);
+            if (day==null){
+                day="0";
+            }
             String month=orderService.rankMonthPayForShop(shopId);
+            if (month==null){
+                month="0";
+            }
             rankShop.setRankDay(day);
             rankShop.setRankMonth(month);
             rankShop.setProduct(products);
@@ -368,20 +410,52 @@ public class ProductController {
 
     @RequestMapping("plusVipHairOrder")
     @ResponseBody
-    public int plusVipHairOrder(HttpServletRequest request,String out_trade_no){
+    public int plusVipHairOrder(HttpServletRequest request,String out_trade_no,Long memberId){
         HttpSession session=request.getSession();
-        Member member=(Member)session.getAttribute("Student");
+        Member member=memberService.selectMemberforId(memberId);
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd");
         Date date=new Date();
         String creatime=sdf.format(date);
+        logger.info("支付订单:"+out_trade_no);
+        ShopOrder order=orderService.selectOrder(Long.valueOf(out_trade_no));
         Hairvip hairvip=productService.selectHairvip(member.getMemberId());
+        if (hairvip==null){
+            Hairvip hairvip1=new Hairvip();
+            hairvip1.setVipId(order.getStuId());
+            hairvip1.setHairvipNum("11");
+            hairvip1.setHairvipName(order.getMemberName());
+            hairvip1.setHaivipAddress(order.getOrdersAddress());
+            hairvip1.setCreatTime(creatime);
+            hairvip1.setHairvipPhone(order.getUserPhone());
+            productService.hairInsert(hairvip1);
+
+            ShopOrder shopOrder=new ShopOrder();
+            shopOrder.setOrdersStatus("6");
+            shopOrder.setEndTime(new Date(creatime));
+            shopOrder.setOrdersId(Long.valueOf(out_trade_no));
+            return orderService.endOrders(shopOrder);
+        }else {
         String num=hairvip.getHairvipNum();
+        int oldnum=Integer.valueOf(num);
+        int newnum=oldnum+11;
         Hairvip vip=new Hairvip();
-        vip.setHairvipNum(num+"11");
+        vip.setHairvipNum(String.valueOf(newnum));
         vip.setVipId(member.getMemberId());
-        return productService.updateHair(vip);
+        int msg=productService.updateHair(vip);
+        if (msg==0){
+            productService.updateHair(vip);
+        }}
+        ShopOrder shopOrder=new ShopOrder();
+        shopOrder.setOrdersStatus("6");
+        shopOrder.setOrdersId(Long.valueOf(out_trade_no));
+        return orderService.endOrders(shopOrder);
     }
 
+    /**
+     * 查询新理发店会员
+     * @param request
+     * @return
+     */
     @RequestMapping("selecthairVip")
     @ResponseBody
     public Hairvip selecthairVip(HttpServletRequest request){
@@ -390,4 +464,29 @@ public class ProductController {
         Hairvip uservip=productService.selectHairvip(member.getMemberId());
         return uservip;
     }
+
+    /**
+     * 查询老理发店会员
+     * @param request
+     * @return
+     */
+    @RequestMapping("selectVip")
+    @ResponseBody
+    public int selectVip(String userName,String groupNumber,HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Student");
+        return productService.FindVip(userName,groupNumber,member.getMemberId());
+    }
+    /**b
+     * 得到理发店排队人数(通过订单Id)
+     * @return
+     */
+    @RequestMapping("getShopPeople")
+    @ResponseBody
+    public int getShopPeople(Long orderId){
+        int num=orderService.getShopPeople(orderId);
+        return num+1;
+    };
+
+
 }
