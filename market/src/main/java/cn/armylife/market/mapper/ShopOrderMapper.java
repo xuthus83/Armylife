@@ -167,4 +167,18 @@ public interface ShopOrderMapper {
      * @return
      */
     int updatePayments(Payments payments);
+
+    /**
+     * 更新到店用餐人数
+     * @param shopOrder
+     * @return
+     */
+    int updatePeopleForOrder(ShopOrder shopOrder);
+
+
+    /**
+     * 查询正在排队的理发店订单
+     * @return
+     */
+    List<ShopOrder> selectOrderForHair();
 }

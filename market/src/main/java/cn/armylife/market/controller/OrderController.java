@@ -1,6 +1,7 @@
 package cn.armylife.market.controller;
 
 import cn.armylife.common.domain.*;
+import cn.armylife.market.util.MessageWechat;
 import cn.armylife.market.feign.MemberService;
 import cn.armylife.market.mapper.DeliveryOrderMapper;
 import cn.armylife.market.service.OrderService;
@@ -44,6 +45,9 @@ public class OrderController {
     @Autowired
     RedisTemplate redisTemplate;
 
+    @Autowired
+    MessageWechat messageWechat;
+
 
     @Value("${server.port}")
     int port;
@@ -61,8 +65,8 @@ public class OrderController {
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date=new Date();
         String creatime=sdf.format(date);
-            shopOrder.setCreatTime(creatime);
-            shopOrder.setOrdersStatus("0");
+        shopOrder.setCreatTime(creatime);
+        shopOrder.setOrdersStatus("0");
         try {
             shopOrder.setEndTime(sdf.parse(shopOrder.getAppintment()));
         }catch (NullPointerException e){
@@ -320,6 +324,53 @@ public class OrderController {
            return shopOrder;
     }
 
+    /**
+     * 更新到店用餐人数
+     * @param number
+     * @param ordersId
+     * @return
+     */
+    @RequestMapping("plusOrderPeoPle")
+    @ResponseBody
+    public int plusOrderPeoPle(int number, Long ordersId){
+        ShopOrder order=orderService.selectOrder(ordersId);
+        int num=order.getOrdersPeople();
+        int people=num+number;
+        ShopOrder shopOrder=new ShopOrder();
+        shopOrder.setOrdersId(ordersId);
+        shopOrder.setOrdersPeople(people);
+        return orderService.updatePeopleForOrder(shopOrder);
+    }
+
+    /**
+     *创建加人订单
+     * @param peopel
+     * @param request
+     * @return
+     */
+    @RequestMapping("creatPeopleOrder")
+    @ResponseBody
+    public Long creatPeople(int peopel,Long ordersId,HttpServletRequest request){
+        SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Date date=new Date();
+        String time=sdf.format(date);
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Student");
+        ShopOrder order=orderService.selectOrder(ordersId);
+        Long int1=NumberID.nextId(port);
+        ShopOrder shopOrder=new ShopOrder();
+        shopOrder.setOrdersPeople(peopel);
+        shopOrder.setOrdersId(int1);
+        shopOrder.setOrderTotal(new BigDecimal(peopel*2));
+        shopOrder.setOrdersDesc("到店用餐增加人数");
+        shopOrder.setCreatTime(time);
+        shopOrder.setOrdersStatus("0");
+        shopOrder.setStuId(member.getMemberId());
+        shopOrder.setShopId(order.getShopId());
+        orderService.creatPeople(shopOrder);
+        return int1;
+    }
+
     /**s
      * 查询需要跑腿的订单
      * @param request
@@ -343,7 +394,7 @@ public class OrderController {
         List<DeliveryOrder> pageInfo = orderService.selectAlldelivery();
         return pageInfo;
     }
-//
+
 //    /**
 //     * 得到当前商铺的排队人数
 //     * @param request
@@ -467,13 +518,18 @@ public class OrderController {
         return pageInfo;
     };
 
+    /**
+     * 更新理发店金额
+     * @param total
+     * @param memberId
+     * @param paymentsId
+     * @return
+     */
     @RequestMapping("updateHairAmount")
     @ResponseBody
     public int updateHairAmount(String total,Long memberId,Long paymentsId){
-        if(orderService.selectPaymentsForId(paymentsId)==null){
-            return 0;
-        };
-        return orderService.updateHairAmount(total,memberId);
+
+        return orderService.updateHairAmount(total,memberId,paymentsId);
     }
 
     /**
@@ -498,6 +554,16 @@ public class OrderController {
     @ResponseBody
     public int updateTagName(ShopTag shopTag){
         return productService.updateTagName(shopTag);
+    };
+
+    /**
+     * 查询所有理发会员
+     * @return
+     */
+    @RequestMapping("selectHairAll")
+    @ResponseBody
+    public List<Hairvip> selectHairAll(){
+        return orderService.selectHairAll();
     };
 
 }

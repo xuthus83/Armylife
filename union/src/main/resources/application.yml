@@ -1,5 +1,5 @@
 server:
-  port: 9112
+  port: 9121
 spring:
   resources:
     chain:
@@ -14,9 +14,9 @@ spring:
     suffix: .html
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://rm-bp19258xs6rg675x91o.mysql.rds.aliyuncs.com:3306/armylife?serverTimezone=UTC
+    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
     username: root
-    password: Xx960928++
+    password: root
     hikari:
       max-lifetime: 0
   cloud:
@@ -36,7 +36,8 @@ spring:
   redis:
     timeout: 3600s
     port: 6379
-    host: 127.0.0.1
+    host: 118.31.121.141
+    password: Kzr20190603.
   application:
     name: unionservice
   aop:
@@ -44,14 +45,3 @@ spring:
   jackson:
     date-format: yyyy/MM/dd HH:mm:ss
     time-zone: GMT+8
-
-wechat:
-  users:
-    token:
-    appId: wx9e015ae632859f8e
-    appSecret: 9dcb718a89ef427d35aa10d69affcde5
-    callBackSlientUrl:
-    MCHID:
-    wxorder:
-    KEY:
-    NOTIFYURL:

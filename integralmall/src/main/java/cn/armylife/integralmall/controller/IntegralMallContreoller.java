@@ -49,8 +49,8 @@ public class IntegralMallContreoller {
     @ResponseBody
     public int payintegralIncrease(Integer integral,Long memberId){
         logger.info(integral+"uiuiui");
-        Double total= integral*0.01;
-        return integralMallService.integralIncrease(total.intValue(),memberId);
+        Integer total= integral;
+        return integralMallService.integralIncrease(total,memberId);
     }
 
     /**

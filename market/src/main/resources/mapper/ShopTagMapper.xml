@@ -73,7 +73,7 @@
   </delete>
 
   <update id="updateTag" >
-    update shop_tag st INNER JOIN product p on st.tag_id=p.tag_id AND  st.shop_id=p.shop_id SET st.tag_id=#{tagId},p.tag_id=#{tagId} WHERE  st.shop_tag_id=#{shopTagId}
+    update shop_tag st INNER JOIN product p on st.tag_id=p.tag_id AND  st.shop_id=p.shop_id SET st.tag_id=#{1},p.tag_id=#{1} WHERE  st.shop_tag_id=#{0}
   </update>
 
   <update id="updateTagName" >

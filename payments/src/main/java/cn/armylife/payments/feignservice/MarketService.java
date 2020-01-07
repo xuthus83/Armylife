@@ -42,6 +42,10 @@ public interface MarketService {
 
     @RequestMapping(value = "updateHairAmount",method = RequestMethod.GET)
     int updateHairAmount(@RequestParam String total,@RequestParam Long memberId,@RequestParam Long paymentsId);
+
+
+    @RequestMapping(value = "plusOrderPeoPle",method = RequestMethod.GET)
+    int plusOrderPeoPle(@RequestParam int number,@RequestParam Long ordersId);
 }
 
 

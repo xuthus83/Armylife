@@ -218,7 +218,7 @@
   </select>
 
   <update id="updateShopOrder">
-    update shop_order set orders_status=1 where orders_id=#{ordersId}
+    update shop_order set orders_status=#{ordersStatus} where orders_id=#{ordersId}
   </update>
 
   <select id="selectOrderForPayments" parameterType="java.lang.Long" resultMap="BaseResultMap">

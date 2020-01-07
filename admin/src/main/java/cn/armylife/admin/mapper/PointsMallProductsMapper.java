@@ -1,6 +1,7 @@
 package cn.armylife.admin.mapper;
 
 import cn.armylife.admin.domain.PointsMallProducts;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -21,5 +22,5 @@ public interface PointsMallProductsMapper {
      *
      * @mbggenerated
      */
-    List<PointsMallProducts> selectAll();
+    Page<PointsMallProducts> selectAll();
 }

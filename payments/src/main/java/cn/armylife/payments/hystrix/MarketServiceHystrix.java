@@ -38,4 +38,9 @@ public class MarketServiceHystrix implements MarketService {
     public int updateHairAmount(String total,Long memberId,Long paymentsId){
         return 0;
     }
+
+    @Override
+    public int plusOrderPeoPle(int number, Long ordersId){
+        return 0;
+    }
 }

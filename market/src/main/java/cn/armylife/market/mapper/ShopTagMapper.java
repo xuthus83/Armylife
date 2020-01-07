@@ -1,6 +1,7 @@
 package cn.armylife.market.mapper;
 
 import cn.armylife.common.domain.ShopTag;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public interface ShopTagMapper {
      * @param tagId
      * @return
      */
-    int updateTag(Long shopTagId,int tagId);
+    int updateTag(@Param("shopTagId") Long shopTagId,@Param("tagId") int tagId);
 
     /**
      * 更新shop_tag的tag_name名

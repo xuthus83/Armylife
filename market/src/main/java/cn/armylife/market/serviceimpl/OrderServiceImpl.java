@@ -1,6 +1,7 @@
 package cn.armylife.market.serviceimpl;
 
 import cn.armylife.common.domain.*;
+import cn.armylife.market.util.MessageWechat;
 import cn.armylife.market.config.RedisDao;
 import cn.armylife.market.feign.MemberService;
 import cn.armylife.market.feign.PayMentsService;
@@ -17,7 +18,9 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -53,6 +56,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     RestTemplate restTemplate;
 
+    @Autowired
+    MessageWechat messageWechat;
+
     @HystrixCommand(fallbackMethod = "hiError")
     public String hiService(String name) {
         return restTemplate.getForObject("http://SERVICE-HI/hi?name="+name,String.class);
@@ -66,6 +72,9 @@ public class OrderServiceImpl implements OrderService {
         String firstproduct="";
         Long shopId= shopOrder.getShopId();
         Member shop=memberService.selectMemberforId(shopId);
+        if (shop.getAlid().equals("HAIR0505")&&productLists==null){
+            shopOrder.setOrdersStatus("3");
+        }
         logger.info("orderExpress:"+orderExpress);
         BigDecimal orderTotal=shopOrder.getOrderTotal();
         if (orderExpress==0){
@@ -91,10 +100,28 @@ public class OrderServiceImpl implements OrderService {
                     logger.info("到店人数金额:"+orderTotal);
                 }}
         }}
+        WXtemplate wXtemplate1=new WXtemplate();
         if (orderExpress==2){
+            wXtemplate1.setTemplate("_9hSju78I4FRSgSShcMN08-e5zIUGdCp87YvXOBiMTo");
+            wXtemplate1.setOpenid(shop.getMemberWechat());
+            wXtemplate1.setFirst("您好,已有新订单!");
+            wXtemplate1.setRemark1("点击可查看订单详情");
+            Map<String,String> key1=new HashMap<>();
+            key1.put("key1","查看详情");
+            key1.put("key2",shopOrder.getCreatTime());
+            key1.put("key3","理发店");
+            key1.put("key4",shopOrder.getMemberName());
+            key1.put("key5","已付款");
+            wXtemplate1.setKey(key1);
+            wXtemplate1.setKey(key1);
+            wXtemplate1.setUrl("Business/OrderDetails3.html?ordersId="+String.valueOf(shopOrder.getOrdersId()));
+            messageWechat.newOrderService(wXtemplate1);
             Hairvip hairvip=hairvipMapper.selectHairvip(shopOrder.getStuId());
             if (hairvip!=null){
                 int number=Integer.valueOf(hairvip.getHairvipNum());
+                if (number==0){
+                    return 0;
+                }
                 hairvip.setHairvipNum(String.valueOf(number-1));
                 hairvipMapper.updateHair(hairvip);
             }
@@ -103,7 +130,8 @@ public class OrderServiceImpl implements OrderService {
         shopOrder.setOrderTotal(orderTotal);
         shopOrder.setFirstProduct(firstproduct);
         shopOrder.setProductId(productIds);
-        return shopOrderMapper.insert(shopOrder);
+        int msg=shopOrderMapper.insert(shopOrder);
+        return msg;
     }
 
     @Override
@@ -151,14 +179,43 @@ public class OrderServiceImpl implements OrderService {
         shopOrder.setEndTime(new Date());
         ShopOrder order=shopOrderMapper.selectOrder(ordersId);
         Member shop=memberService.selectMemberforId(order.getShopId());
+
         BigDecimal oldtotal=shop.getMemberTotal();
         BigDecimal newtotal=oldtotal.add(order.getOrderTotal());
         int msg= shopOrderMapper.orderFulfillment(newtotal,shop.getMemberId());
         if (msg==0){
             return 0;
         }
-        return shopOrderMapper.updateShopOrder(shopOrder);
+        int msg1=shopOrderMapper.updateShopOrder(shopOrder);
+        if (order.getMember().getAlid().equals("HAIR0505")){
+            List<ShopOrder> shopOrderList=shopOrderMapper.selectOrderForHair();
+            for (int i=0;i<shopOrderList.size();i++){
+                ShopOrder hairOrder=shopOrderList.get(i);
+                logger.info("理发店开始消费后排队订单:"+hairOrder.toString());
+                int num = shopOrderMapper.shopPeople(hairOrder.getOrdersId());
+                logger.info("排队人数:"+num);
+                if (num<3){
+                    Member student=memberService.selectMemberforId(hairOrder.getStuId());
+                    WXtemplate wXtemplate=new WXtemplate();
+                    wXtemplate.setOpenid(student.getMemberWechat());
+                    wXtemplate.setTemplate("4qL32-V24Fvljz3c1GynCqd2CzjKRiYHxsu9ke-08Ko");
+                    wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+hairOrder.getOrdersId());
+                    wXtemplate.setFirst("排队通知:你当前排第"+num+"位,为避免失效请及时前往理发");
+                    wXtemplate.setRemark1("感谢您的使用!");
+                    Map<String,String> key=new HashMap<>();
+                    key.put("key1",shop.getShopName());
+                    key.put("key2",String.valueOf(num+1));
+                    key.put("key3",String.valueOf(num+1));
+                    key.put("key4","排队中");
+                    key.put("key5",sdf.format(new Date()));
+                    wXtemplate.setKey(key);
+                    messageWechat.newOrderService(wXtemplate);
+                }
+            }
+        }
+        return msg1;
     };
+
     /**
      * 外卖结束订单
      * @param orderId
@@ -406,7 +463,35 @@ public class OrderServiceImpl implements OrderService {
     };
 
     @Override
-    public int updateHairAmount(String total,Long memberId){
+    public int updateHairAmount(String total,Long memberId,Long payments){
+        Payments payments1=new Payments();
+        ShopOrder shopOrder=new ShopOrder();
+        if(paymentsMapper.selectPaymentsForId(payments)==null){
+            return 0;
+        }else{
+            payments1=paymentsMapper.selectPaymentsForId(payments);
+            shopOrder=shopOrderMapper.selectOrder(payments1.getOrderId());
+        }
+            if (hairvipMapper.selectHairvip(memberId)==null){
+                Hairvip hairvip=new Hairvip();
+                hairvip.setVipId(memberId);
+                hairvip.setHairvipNum("11");
+//                hairvip.setCreatTime();
+                hairvip.setIs(1);
+                hairvip.setHairvipName(shopOrder.getMemberName());
+                hairvip.setHairvipPhone(shopOrder.getUserPhone());
+                logger.info("充值办理会员");
+                hairvipMapper.insert(hairvip);
+            }else {
+                logger.info("增加次数");
+               Hairvip hari=hairvipMapper.selectHairvip(memberId);
+               int old=Integer.valueOf(hari.getHairvipNum());
+               String newnum=String.valueOf(old+11);
+            Hairvip hairvip=new Hairvip();
+            hairvip.setHairvipNum(newnum);
+            hairvip.setVipId(memberId);
+            hairvipMapper.updateHair(hairvip);
+        }
         Member member=memberService.selectMemberforId(memberId);
         BigDecimal oldtotal=member.getMemberTotal();
         BigDecimal newtotal=oldtotal.add(new BigDecimal(total));
@@ -423,5 +508,28 @@ public class OrderServiceImpl implements OrderService {
         return paymentsMapper.selectPaymentsForId(paymentsId);
     };
 
+    /**
+     * 更新到店用餐人数
+     * @param shopOrder
+     * @return
+     */
+    @Override
+    public int updatePeopleForOrder(ShopOrder shopOrder){
+        return shopOrderMapper.updatePeopleForOrder(shopOrder);
+    };
 
+    /**
+     * 增加人数订单
+     * @param shopOrder
+     * @return
+     */
+    @Override
+    public int creatPeople(ShopOrder shopOrder){
+        return shopOrderMapper.insert(shopOrder);
+    }
+
+    @Override
+    public List<Hairvip> selectHairAll(){
+        return hairvipMapper.selectAll();
+    };
 }

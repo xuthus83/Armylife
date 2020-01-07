@@ -246,9 +246,9 @@
         <if test="creatTime!=null">
         creat_time=#{creatTime},
         </if>
-        <if test="refundDesc!=null">
-          refund_desc=#{refundDesc}
-        </if>
+<!--        <if test="refundDesc!=null">-->
+<!--          refund_desc=#{refundDesc}-->
+<!--        </if>-->
         <if test="isShow!=0">
           is_show=0
         </if>
@@ -304,13 +304,21 @@
   <update id="orderFulfillment">
     update member set member_total=#{memberTotal} where member_id=#{memberId}
   </update>
-
+<!--  查询-->
   <select id="shopPeople" parameterType="java.lang.Long" resultType="java.lang.Integer">
     SELECT count(*) from shop_order where shop_id =(SELECT member_id FROM member WHERE alid=&apos;HAIR0505&apos;) AND orders_status =3 and creat_time  &lt; ( SELECT creat_time FROM shop_order WHERE orders_id=#{ordersId}
     )
   </select>
-
+<!--  更新支付订单-->
   <update id="updatePayments" parameterType="cn.armylife.common.domain.Payments" >
     update paymemmts set pay_refund=#{payRefund},refund_desc=#{refundDesc},refund_total=#{refundTotal},refuns_time=#{refundTime} where payments_id=#{paymentsId}
   </update>
+  <!--  更新到店用餐人数-->
+  <update id="updatePeopleForOrder">
+    update shop_order set orders_people=#{ordersPeople} where orders_id=#{ordersId}
+  </update>
+
+  <select id="selectOrderForHair" resultMap="BaseResultMap">
+    SELECT * FROM shop_order WHERE shop_id=(SELECT member_id FROM member WHERE alid='HAIR0505') AND orders_status=3
+  </select>
 </mapper>

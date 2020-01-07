@@ -382,6 +382,12 @@ public class ProductController {
             return int1;
     }
 
+    /**
+     * 去理发
+     * @param shopOrder
+     * @param request
+     * @return
+     */
     @RequestMapping("goVipHairOrder")
     @ResponseBody
     public int goVipHairOrder(ShopOrder shopOrder,HttpServletRequest request){
@@ -390,7 +396,7 @@ public class ProductController {
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd");
         Date date=new Date();
         String creatime=sdf.format(date);
-        shopOrder.setOrdersStatus("4");
+        shopOrder.setOrdersStatus("3");
         Long int1= NumberID.nextId(port);
         shopOrder.setOrdersId(int1);
         shopOrder.setStuId(member.getMemberId());
@@ -408,6 +414,13 @@ public class ProductController {
         return orderService.VIPinsert(shopOrder);
     }
 
+    /**
+     * 添加会员
+     * @param request
+     * @param out_trade_no
+     * @param memberId
+     * @return
+     */
     @RequestMapping("plusVipHairOrder")
     @ResponseBody
     public int plusVipHairOrder(HttpServletRequest request,String out_trade_no,Long memberId){
@@ -428,7 +441,6 @@ public class ProductController {
             hairvip1.setCreatTime(creatime);
             hairvip1.setHairvipPhone(order.getUserPhone());
             productService.hairInsert(hairvip1);
-
             ShopOrder shopOrder=new ShopOrder();
             shopOrder.setOrdersStatus("6");
             shopOrder.setEndTime(new Date(creatime));
@@ -477,7 +489,8 @@ public class ProductController {
         Member member=(Member)session.getAttribute("Student");
         return productService.FindVip(userName,groupNumber,member.getMemberId());
     }
-    /**b
+
+    /**
      * 得到理发店排队人数(通过订单Id)
      * @return
      */

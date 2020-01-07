@@ -1,16 +1,22 @@
 package cn.armylife.admin.service;
 
-import cn.armylife.admin.domain.MallProductsDetail;
 import cn.armylife.admin.domain.MallProductsPicture;
 import cn.armylife.admin.domain.PointsMallProducts;
+import com.github.pagehelper.Page;
 
 
 public interface IntegralService {
 
     /**
      * 积分商城商品添加
-     * @param record
+     * @param
      * @return
      */
-    int Productinsert(PointsMallProducts record, MallProductsDetail mallProductsDetail, MallProductsPicture mallProductsPicture);
+    int Productinsert(MallProductsPicture mallProductsPicture);
+
+    /**
+     * 查询全部积分商品
+     * @return
+     */
+    Page<PointsMallProducts> productSelectAll();
 }

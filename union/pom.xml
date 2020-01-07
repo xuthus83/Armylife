@@ -146,16 +146,25 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.aliyun.dts</groupId>
-            <artifactId>dts-subscribe-sdk</artifactId>
-            <version>5.0.0.1.beta</version>
-        </dependency>
-        <dependency>
             <groupId>com.jd.open.jdk.api</groupId>
             <artifactId>com.jugan.util</artifactId>
             <version>1.0</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/jd-cps-client-2.2.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.taobao.api</groupId>
+            <artifactId>com.taobao.api</artifactId>
+            <version>3.2.6</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/taobao-sdk-java-auto_1571476067040-20200103.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.taobao.api</groupId>
+            <artifactId>com.taobao.api</artifactId>
+            <version>3.2.6</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/taobao-sdk-java-auto_1571476067040-20200103-source.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -185,6 +194,13 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
             </plugin>
         </plugins>
     </build>

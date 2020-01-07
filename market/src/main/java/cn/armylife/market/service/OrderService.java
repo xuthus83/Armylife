@@ -160,7 +160,7 @@ public interface OrderService {
      * @param memberId
      * @return
      */
-    int updateHairAmount(String total,Long memberId);
+    int updateHairAmount(String total,Long memberId,Long payments);
 
     /**
      * 查找支付订单
@@ -169,6 +169,19 @@ public interface OrderService {
      */
     Payments selectPaymentsForId(Long paymentsId);
 
+    /**
+     * 更新到店用餐人数
+     * @param shopOrder
+     * @return
+     */
+    int updatePeopleForOrder(ShopOrder shopOrder);
 
+    int creatPeople(ShopOrder shopOrder);
+
+    /**
+     *
+     * @return
+     */
+    List<Hairvip> selectHairAll();
 
 }

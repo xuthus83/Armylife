@@ -5,10 +5,12 @@ import cn.armylife.common.domain.*;
 import cn.armylife.payments.domain.Alipay;
 import cn.armylife.payments.feignservice.IntegralService;
 import cn.armylife.payments.feignservice.MarketService;
+import cn.armylife.payments.feignservice.MemberService;
 import cn.armylife.payments.feignservice.Payservice;
 import cn.armylife.payments.service.PayMentsService;
 import cn.armylife.payments.service.TransactionsService;
 import cn.armylife.payments.utils.MemberWXMyConfigUtil;
+import cn.armylife.payments.utils.MessageWechat;
 import cn.armylife.payments.utils.NumberID;
 import cn.armylife.payments.utils.WXPayUtil;
 import com.alipay.api.AlipayApiException;
@@ -53,6 +55,12 @@ public class PayMentsController {
 
     @Autowired
     IntegralService integralService;
+
+    @Autowired
+    MemberService memberService;
+
+    @Autowired
+    MessageWechat messageWechat;
 
     @Value("${server.port}")
     int port;
@@ -236,16 +244,27 @@ public class PayMentsController {
                         Member user=payMentsService.selectMemberForOpenid(openid);
                         ShopOrder shopOrder=new ShopOrder();
                         shopOrder.setOrdersStatus("1");
-                        integralService.payintegralIncrease(Integer.valueOf(total_fee),user.getMemberId());
+                        Payments payments=new Payments();
+                        payments.setPayNumber(transaction_id);
+                        payments.setPayStatus("2");
+                        Double total=Integer.valueOf(total_fee)*0.01;
+                        logger.info("积分:"+total.intValue());
+                        integralService.payintegralIncrease(total.intValue(),user.getMemberId());
                         Long paymentsId=Long.valueOf(out_trade_no);
                         Payments payment1=payMentsService.selectOrderForPayments(paymentsId);
+                        Long ordersId=payment1.getOrderId();
                         shopOrder.setOrdersId(payment1.getOrderId());
                         if (attach.equals("2")){
+                            logger.info("进入理发店流程");
+                            shopOrder.setOrdersStatus("3");
+                        }else if (attach.equals("4")){
                             shopOrder.setOrdersStatus("6");
-                            marketService.plusVipHairOrder(String.valueOf(payment1.getOrderId()),user.getMemberId());
-                            marketService.updateHairAmount(total_fee,payment1.getReceivName(),paymentsId);
-                        }
-                        else if(attach.equals("3")){
+                            marketService.updateHairAmount(String.valueOf(total),payment1.getPayName(),paymentsId);
+                        }else if(attach.equals("6")){
+                            int num=total.intValue();
+                            int people=num/2;
+                            marketService.plusOrderPeoPle(people,ordersId);
+                        }else if(attach.equals("3")){
                             AfterOrder afterOrder=new AfterOrder();
                             afterOrder.setAfterOrderId(Long.valueOf(out_trade_no));
                             afterOrder.setIsPay(1);
@@ -255,9 +274,6 @@ public class PayMentsController {
                         if (ordernews==0){
                             logger.info("出错"+ordernews);
                         }
-                        Payments payments=new Payments();
-                        payments.setPayNumber(transaction_id);
-                        payments.setPayStatus("2");
                         payments.setEndTime(creatTime);
                         payments.setPayApp("1");
                         payments.setPaymentsId(Long.valueOf(out_trade_no));
@@ -265,6 +281,32 @@ public class PayMentsController {
                         if (paymentsnews==0){
                             logger.info("出错"+ordernews);
                         }
+                        WXtemplate wXtemplate=new WXtemplate();
+                        wXtemplate.setTemplate("WD4fbaWwjhJzwB1VXV3jFWqNYpSvD_Dye1sUJ5xZCus");
+                        wXtemplate.setOpenid(openid);
+                        wXtemplate.setFirst("您好,已成功创建订单!");
+                        wXtemplate.setRemark1("点击可查看订单详情");
+                        Map<String,String> key=new HashMap<>();
+                        key.put("key1",String.valueOf(ordersId));
+                        key.put("key2",creatTime);
+                        wXtemplate.setKey(key);
+                        wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+ordersId);
+                        messageWechat.newOrderService(wXtemplate);
+                        WXtemplate wXtemplate1=new WXtemplate();
+                        Member shop=payMentsService.selectMember(payment1.getReceivName());
+                        wXtemplate1.setTemplate("_9hSju78I4FRSgSShcMN08-e5zIUGdCp87YvXOBiMTo");
+                        wXtemplate1.setOpenid(shop.getMemberWechat());
+                        wXtemplate1.setFirst("您好,已有新订单!");
+                        wXtemplate1.setRemark1("点击可查看订单详情");
+                        Map<String,String> key1=new HashMap<>();
+                        key1.put("key1","查看详情");
+                        key1.put("key2",creatTime);
+                        key1.put("key3","理发店");
+                        key1.put("key4",shopOrder.getMemberName());
+                        key1.put("key5","已付款");
+                        wXtemplate1.setKey(key1);
+                        wXtemplate1.setUrl("Business/OrderDetails3.html?ordersId="+ordersId);
+                        messageWechat.newOrderService(wXtemplate1);
                     }
                 }else{
                     // 交易失败的处理
@@ -311,19 +353,28 @@ public class PayMentsController {
                         String attach=notifyMap.get("attach");
                         logger.info("attach:"+attach);
                         String out_trade_no=notifyMap.get("out_trade_no");
-                        String openid=notifyMap.get("openid");
+//                        String openid=notifyMap.get("openid");
                         logger.info("商户订单:"+out_trade_no);
                         String total_fee=notifyMap.get("total_fee");
                         logger.info("支付金额:"+total_fee);
+                        Double total=Integer.valueOf(total_fee)*0.01;
                         Payments payments=new Payments();
                         payments.setRefundsNumber(transaction_id);
                         payments.setPayStatus("3");
                         payments.setEndTime(creatTime);
                         payments.setRefunsTime(creatTime);
                         payments.setRefundDesc("订单退款");
-                        payments.setRefundTotal(new BigDecimal(total_fee));
+                        payments.setRefundTotal(new BigDecimal(total));
                         payments.setPayRefund(1);
                         payments.setPaymentsId(Long.valueOf(out_trade_no));
+                        Member shop=new Member();
+                        BigDecimal memberTotal=shop.getMemberTotal();
+                        BigDecimal popTotal=new BigDecimal(total);
+                        BigDecimal newTotal=memberTotal.subtract(popTotal);
+                        Member member=payMentsService.selectMember(payments.getReceivName());
+                        shop.setMemberTotal(newTotal);
+                        shop.setMemberId(member.getMemberId());
+                        payMentsService.updateShop(shop);
                         int paymentsnews=payMentsService.updatePayMentsForCallback(payments);
                         if (paymentsnews==0){
                             logger.info("出错"+paymentsnews);
