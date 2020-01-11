@@ -12,7 +12,14 @@ public interface IntegralService {
      * @param
      * @return
      */
-    int Productinsert(MallProductsPicture mallProductsPicture);
+    Long productinsert(PointsMallProducts pointsMallProducts);
+
+    /**
+     * 积分商城商品添加
+     * @param
+     * @return
+     */
+    int pictureInsert(MallProductsPicture mallProductsPicture);
 
     /**
      * 查询全部积分商品

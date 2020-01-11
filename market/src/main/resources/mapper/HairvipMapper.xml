@@ -11,9 +11,32 @@
     <result column="hairvip_name" jdbcType="VARCHAR" property="hairvipName" />
     <result column="hairvip_phone" jdbcType="VARCHAR" property="hairvipPhone" />
     <result column="hairvip_num" jdbcType="VARCHAR" property="hairvipNum" />
+    <result column="haivip_address" jdbcType="VARCHAR" property="haivipAddress" />
     <result column="creat_time" jdbcType="TIMESTAMP" property="creatTime" />
     <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
     <result column="is" jdbcType="INTEGER" property="is" />
+    <association property="shopOrder" javaType="cn.armylife.common.domain.ShopOrder">
+      <result column="orders_id" property="ordersId" jdbcType="BIGINT" />
+      <result column="orders_type" property="ordersType" jdbcType="INTEGER" />
+      <result column="orders_people" property="ordersPeople" jdbcType="INTEGER" />
+      <result column="appintment" property="appintment" jdbcType="VARCHAR" />
+      <result column="product_id" property="productId" jdbcType="VARCHAR" />
+      <result column="orders_reserve" property="ordersReserve" jdbcType="VARCHAR" />
+      <result column="reserve_number" property="reserveNumber" jdbcType="INTEGER" />
+      <result column="shop_id" property="shopId" jdbcType="INTEGER" />
+      <result column="stu_id" property="stuId" jdbcType="INTEGER" />
+      <result column="isdelivery" property="isdelivery" jdbcType="INTEGER" />
+      <result column="orders_address" property="ordersAddress" jdbcType="VARCHAR" />
+      <result column="user_phone" property="userPhone" jdbcType="VARCHAR" />
+      <result column="orders_desc" property="ordersDesc" jdbcType="VARCHAR" />
+      <result column="shoptime" property="creatTime" jdbcType="VARCHAR" />
+      <result column="end_time" property="endTime" jdbcType="VARCHAR" />
+      <result column="orders_status" property="ordersStatus" jdbcType="VARCHAR" />
+      <result column="order_total" property="orderTotal" jdbcType="DECIMAL" />
+      <result column="delivery_total" property="deliveryTotal" jdbcType="DECIMAL" />
+      <result column="member_name" property="memberName" jdbcType="VARCHAR" />
+      <result column="isexpress" property="isexpress" jdbcType="VARCHAR" />
+    </association>
   </resultMap>
   <insert id="insert" parameterType="cn.armylife.common.domain.Hairvip">
     <!--
@@ -24,10 +47,10 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into hairvip (vip_id, hairvip_name, hairvip_phone, 
-      hairvip_num, creat_time, end_time, 
+      hairvip_num,haivip_address, creat_time, end_time,
       `is`)
     values (#{vipId,jdbcType=BIGINT}, #{hairvipName,jdbcType=VARCHAR}, #{hairvipPhone,jdbcType=VARCHAR}, 
-      #{hairvipNum,jdbcType=VARCHAR}, #{creatTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, 
+      #{hairvipNum,jdbcType=VARCHAR},#{haivipAddress,jdbcType=VARCHAR}, #{creatTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP},
       #{is,jdbcType=INTEGER})
   </insert>
   <select id="selectAll" resultMap="BaseResultMap">
@@ -40,6 +63,11 @@
     from hairvip
   </select>
 
+  <select id="searchAll" resultMap="BaseResultMap">
+    SELECT *,shop.creat_time AS shoptime from hairvip hv LEFT JOIN
+    (SELECT s.* FROM  (SELECT *FROM shop_order WHERE orders_status=6 AND shop_id=29 AND order_total=0.00 ORDER by creat_time DESC) s GROUP BY s.stu_id) shop  on shop.stu_id=hv.vip_id
+    ORDER BY shop.creat_time desc
+  </select>
     <select id="selectHairvip" parameterType="java.lang.Long" resultMap="BaseResultMap">
         select * from hairvip where vip_id=#{memerId}
     </select>
@@ -47,4 +75,9 @@
   <update id="updateHair" >
     update hairvip set hairvip_num=#{hairvipNum} where vip_id=#{vipId}
   </update>
+
+<!--  通过会员名查询用户-->
+  <select id="searchHairVip" resultMap="BaseResultMap">
+    select * from hairvip where hairvip_name like concat(concat('%',#{vipName}),'%')
+  </select>
 </mapper>

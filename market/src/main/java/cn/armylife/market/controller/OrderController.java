@@ -1,6 +1,7 @@
 package cn.armylife.market.controller;
 
 import cn.armylife.common.domain.*;
+import cn.armylife.market.feign.PayMentsService;
 import cn.armylife.market.util.MessageWechat;
 import cn.armylife.market.feign.MemberService;
 import cn.armylife.market.mapper.DeliveryOrderMapper;
@@ -47,6 +48,7 @@ public class OrderController {
 
     @Autowired
     MessageWechat messageWechat;
+    @Autowired private PayMentsService payMentsService;
 
 
     @Value("${server.port}")
@@ -67,18 +69,20 @@ public class OrderController {
         String creatime=sdf.format(date);
         shopOrder.setCreatTime(creatime);
         shopOrder.setOrdersStatus("0");
+        shopOrder.setIsexpress(0);
         try {
             shopOrder.setEndTime(sdf.parse(shopOrder.getAppintment()));
         }catch (NullPointerException e){
             e.printStackTrace();
 //            shopOrder.setEndTime(new Date("0000-00-00 00:00:00"));
         }
-            Long int1 = NumberID.nextId(port);
-            shopOrder.setOrdersId(int1);
-            shopOrder.setStuId(member.getMemberId());
-            if (shopOrder.getDeliveryTotal() != null) {
-                shopOrder.setIsShow(1);
-            }
+        Long int1 = NumberID.nextId(port);
+        shopOrder.setOrdersId(int1);
+        shopOrder.setStuId(member.getMemberId());
+        shopOrder.setMemberName(member.getMemberNickname());
+        if (shopOrder.getDeliveryTotal() != null) {
+            shopOrder.setIsShow(1);
+        }
         logger.info("SopOrder:"+shopOrder);
         List<Product> productList=new ArrayList<>();
         List<OrderDetail> expressList=new ArrayList<>();
@@ -88,8 +92,12 @@ public class OrderController {
         logger.info("orderExpress:"+orderExpress);
     try {
          if (orderExpress==1){
+             shopOrder.setShopId(5L);
+             shopOrder.setIsdelivery(1);
+             shopOrder.setIsexpress(1);
+             shopOrder.setDeliveryTotal(shopOrder.getOrderTotal());
+             shopOrder.setOrderTotal(new BigDecimal(0));
             for (int i=0;i<ll.size("userId-"+member.getMemberId());i++){
-                shopOrder.setIsdelivery(1);
                 expressList.add(ll.index("userId-"+member.getMemberId(), i));
             }
             for (int i=0;i<expressList.size();i++){
@@ -108,6 +116,19 @@ public class OrderController {
         int msg =orderService.insert(shopOrder,productList,orderExpress);
         if (msg==0){
             return 0l;
+        }
+        if (shopOrder.getOrderTotal().compareTo(new BigDecimal(0))==0&&shopOrder.getIsexpress()==0){
+            WXtemplate wXtemplate=new WXtemplate();
+            wXtemplate.setTemplate("WD4fbaWwjhJzwB1VXV3jFWqNYpSvD_Dye1sUJ5xZCus");
+            wXtemplate.setOpenid(member.getMemberWechat());
+            wXtemplate.setFirst("您好,已成功创建订单!");
+            wXtemplate.setRemark1("点击可查看订单详情");
+            Map<String,String> key=new HashMap<>();
+            key.put("key1",String.valueOf(int1));
+            key.put("key2",creatime);
+            wXtemplate.setKey(key);
+            wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+int1);
+            messageWechat.newOrderService(wXtemplate);
         }
         lo.rightPop("userId-"+member.getMemberId()+"s"+shopOrder.getShopId());
         lo.rightPop("userId-"+member.getMemberId());
@@ -241,7 +262,6 @@ public class OrderController {
         deliveryOrder.setDeliveryTotal(shopOrder.getDeliveryTotal());
         deliveryOrder.setUserPhone(shopOrder.getUserPhone());
         deliveryOrder.setUserName(member.getMemberName());
-        deliveryOrder.setDeliveryTotal(shopOrder.getDeliveryTotal());
         ShopOrder order=new ShopOrder();
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
         Date date=new Date();
@@ -469,6 +489,31 @@ public class OrderController {
         ShopOrder shopOrder=new ShopOrder();
         shopOrder.setOrdersStatus("5");
         shopOrder.setOrdersId(ordersId);
+        ShopOrder order=orderService.selectOrder(shopOrder.getOrdersId());
+        if (order.getIsexpress()==1){
+            String totalfee=order.getOrderTotal().toString();
+            BigDecimal total=order.getOrderTotal();
+            logger.info("退款资金"+totalfee);
+            Payments payments=payMentsService.selectPaments(ordersId);
+            int msg=1;
+            switch (payments.getPayApp()){
+                case "2":
+                    logger.info("支付宝退款");
+                    msg=payMentsService.Alipayrefund(String.valueOf(ordersId),"退款申请",totalfee.toString(),"取消订单");
+                    if (msg==0){
+                        return 0;
+                    }
+                    break;
+                case "1":
+                    logger.info("微信退款");
+                    msg=payMentsService.WechatPayTransfer(ordersId,total,total,"取消订单");
+                    if (msg==0){
+                        return 0;
+                    }
+                    break;
+            }
+        }
+
         return orderService.endOrders(shopOrder);
     }
 
@@ -565,5 +610,28 @@ public class OrderController {
     public List<Hairvip> selectHairAll(){
         return orderService.selectHairAll();
     };
+
+    /**
+     * 通过会员名查询用户信息
+     * @param vipName
+     * @return
+     */
+    @RequestMapping("searchHairVip")
+    @ResponseBody
+    public List<Hairvip> searchHairVip(String vipName){
+        return orderService.searchHairVip(vipName);
+    };
+
+    /**
+     * 操作会员次数
+     * @param hairvip
+     * @param code
+     * @return
+     */
+    @RequestMapping("eidtHairNum")
+    @ResponseBody
+    public int eidtHairNum(Hairvip hairvip,int code){
+        return orderService.editHairNum(hairvip,code);
+    }
 
 }

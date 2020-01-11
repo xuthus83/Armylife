@@ -125,14 +125,6 @@ public class PayMentsController {
             payments.setPayStatus("1");
             payments.setCreatTime(creatTime);
             payments.setPayDesc("订单支付");
-        }else {
-            AfterOrder afterOrder= payMentsService.selectAfterOrder(ordersId);
-            payments.setPayTotal(afterOrder.getAfterOrderTotal());
-            payments.setPayName(shopOrder.getStuId());
-            payments.setReceivName(shopOrder.getShopId());
-            payments.setPayStatus("1");
-            payments.setCreatTime(creatTime);
-            payments.setPayDesc("订单支付");
         }
         Long id= NumberID.nextId(port);
         payments.setPaymentsId(id);
@@ -241,7 +233,8 @@ public class PayMentsController {
                         logger.info("商户订单:"+out_trade_no);
                         String total_fee=notifyMap.get("total_fee");
                         logger.info("支付金额:"+total_fee);
-                        Member user=payMentsService.selectMemberForOpenid(openid);
+                        Member user=payMentsService.selectMemberForOpenid(openid);//获取支付者微信openId
+                        //创建并根据不同状态进行处理
                         ShopOrder shopOrder=new ShopOrder();
                         shopOrder.setOrdersStatus("1");
                         Payments payments=new Payments();
@@ -254,7 +247,10 @@ public class PayMentsController {
                         Payments payment1=payMentsService.selectOrderForPayments(paymentsId);
                         Long ordersId=payment1.getOrderId();
                         shopOrder.setOrdersId(payment1.getOrderId());
-                        if (attach.equals("2")){
+                        ShopOrder order=payMentsService.selectOrder(ordersId);
+                        if (order.getIsexpress()==1){
+                            shopOrder.setOrdersStatus("3");
+                        }else if (attach.equals("2")){
                             logger.info("进入理发店流程");
                             shopOrder.setOrdersStatus("3");
                         }else if (attach.equals("4")){
@@ -265,6 +261,7 @@ public class PayMentsController {
                             int people=num/2;
                             marketService.plusOrderPeoPle(people,ordersId);
                         }else if(attach.equals("3")){
+//                            shopOrder.setOrdersStatus("3");
                             AfterOrder afterOrder=new AfterOrder();
                             afterOrder.setAfterOrderId(Long.valueOf(out_trade_no));
                             afterOrder.setIsPay(1);
@@ -293,20 +290,22 @@ public class PayMentsController {
                         wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+ordersId);
                         messageWechat.newOrderService(wXtemplate);
                         WXtemplate wXtemplate1=new WXtemplate();
-                        Member shop=payMentsService.selectMember(payment1.getReceivName());
-                        wXtemplate1.setTemplate("_9hSju78I4FRSgSShcMN08-e5zIUGdCp87YvXOBiMTo");
-                        wXtemplate1.setOpenid(shop.getMemberWechat());
-                        wXtemplate1.setFirst("您好,已有新订单!");
-                        wXtemplate1.setRemark1("点击可查看订单详情");
-                        Map<String,String> key1=new HashMap<>();
-                        key1.put("key1","查看详情");
-                        key1.put("key2",creatTime);
-                        key1.put("key3","理发店");
-                        key1.put("key4",shopOrder.getMemberName());
-                        key1.put("key5","已付款");
-                        wXtemplate1.setKey(key1);
-                        wXtemplate1.setUrl("Business/OrderDetails3.html?ordersId="+ordersId);
-                        messageWechat.newOrderService(wXtemplate1);
+                        if (order.getIsexpress()!=1) {
+                            Member shop = payMentsService.selectMember(payment1.getReceivName());
+                            wXtemplate1.setTemplate("_9hSju78I4FRSgSShcMN08-e5zIUGdCp87YvXOBiMTo");
+                            wXtemplate1.setOpenid(shop.getMemberWechat());
+                            wXtemplate1.setFirst("您好,已有新订单!");
+                            wXtemplate1.setRemark1("点击可查看订单详情");
+                            Map<String, String> key1 = new HashMap<>();
+                            key1.put("key1", "查看详情");
+                            key1.put("key2", creatTime);
+                            key1.put("key3", "理发店");
+                            key1.put("key4", shopOrder.getMemberName());
+                            key1.put("key5", "已付款");
+                            wXtemplate1.setKey(key1);
+                            wXtemplate1.setUrl("Business/OrderDetails3.html?ordersId=" + ordersId);
+                            messageWechat.newOrderService(wXtemplate1);
+                        }
                     }
                 }else{
                     // 交易失败的处理
@@ -563,7 +562,7 @@ public class PayMentsController {
         payments.setRefundDesc(buyer_logon_id);
         payments.setPayRefund(1);
         if (fund_change.equals("Y")){
-            logger.info("通过");
+//            logger.info("通过");
             payMentsService.updatePayMentsForCallback(payments);
         }
         if (verify_result){
@@ -591,7 +590,7 @@ public class PayMentsController {
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Shop");
         Payments p=payMentsService.selectPaments(Long.valueOf(WIDout_trade_no));
-        logger.info("支付订单Id"+p.getPaymentsId());
+//        logger.info("支付订单Id"+p.getPaymentsId());
         return payservice.Alipayrefund(String.valueOf(p.getPaymentsId()),WIDsubject,WIDrefund_amount,WIDbody);
     }
 
@@ -612,7 +611,7 @@ public class PayMentsController {
         Payments p=payMentsService.selectPaments(orderCardId);
         Double total=totalfree.doubleValue();//订单金额
         Double refund=refundfree.doubleValue();//退款金额
-        logger.info("支付订单Id"+p.getPaymentsId());
+//        logger.info("微信退款Id"+p.getPaymentsId());
         return payservice.orderrefund(p.getPaymentsId(),refund,total,desc);
     }
 

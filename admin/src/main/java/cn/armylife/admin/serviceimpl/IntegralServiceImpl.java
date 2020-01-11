@@ -23,12 +23,22 @@ public class IntegralServiceImpl implements IntegralService {
 
     /**
      * 积分商城商品添加
-     * @param mallProductsPicture
+     * @param pointsMallProducts
      * @return
      */
     @Override
-    public int Productinsert(MallProductsPicture mallProductsPicture){
-       return mallProductsPictureMapper.insert(mallProductsPicture);
+    public Long productinsert(PointsMallProducts pointsMallProducts){
+       pointsMallProductsMapper.insert(pointsMallProducts);
+       return pointsMallProducts.getPointsMallProductsId();
+    };
+
+    /**
+     * 积分商城商品添加
+     * @param
+     * @return
+     */
+    public int pictureInsert(MallProductsPicture mallProductsPicture){
+        return mallProductsPictureMapper.insert(mallProductsPicture);
     };
 
     /**

@@ -3,12 +3,10 @@ package cn.armylife.member.serviceimpl;
 //import Users;
 
 import cn.armylife.common.domain.Member;
+import cn.armylife.common.domain.MemberDeliveryaddress;
 import cn.armylife.common.domain.Product;
 import cn.armylife.common.domain.Transactions;
-import cn.armylife.member.mapper.AlidMapper;
-import cn.armylife.member.mapper.MemberMapper;
-import cn.armylife.member.mapper.ProductMapper;
-import cn.armylife.member.mapper.TransactionsMapper;
+import cn.armylife.member.mapper.*;
 import cn.armylife.member.service.MemberService;
 import cn.armylife.member.util.IsAlid;
 import com.github.pagehelper.Page;
@@ -29,6 +27,7 @@ public class MemberServiceImpl implements MemberService {
     @Autowired private AlidMapper alidMapper;
     @Autowired private ProductMapper productMapper;
     @Autowired private IsAlid isa;
+    @Autowired private MemberDeliveryaddressMapper memberDeliveryaddressMapper;
 
     @Override
     public Long insert(Member record){
@@ -193,4 +192,41 @@ public class MemberServiceImpl implements MemberService {
         return memberMapper.inspectMemberForOpenId(member);
     };
 
+    /**
+     * 添加用户收货地址
+     * @param memberDeliveryaddress
+     * @return
+     */
+    public int addressInsert(MemberDeliveryaddress memberDeliveryaddress){
+        SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        memberDeliveryaddress.setCreatTime(new Date());
+        return memberDeliveryaddressMapper.insert(memberDeliveryaddress);
+    };
+
+    /**
+     * 删除收货地址
+     * @param addressId
+     * @return
+     */
+    public int removeAddress(Long addressId){
+        return memberDeliveryaddressMapper.removeAddress(addressId);
+    };
+
+    /**
+     * 查询用户收货地址
+     * @param memberId
+     * @return
+     */
+    public List<MemberDeliveryaddress> searchAddress(Long memberId){
+        return memberDeliveryaddressMapper.searchAddress(memberId);
+    };
+
+    /**
+     * 修改地址
+     * @param memberDeliveryaddress
+     * @return
+     */
+    public int updateAddress(MemberDeliveryaddress memberDeliveryaddress){
+        return memberDeliveryaddressMapper.updateAddress(memberDeliveryaddress);
+    };
 }

@@ -12,7 +12,7 @@
     <result column="delivery_address" jdbcType="VARCHAR" property="deliveryAddress" />
     <result column="user_phone" jdbcType="VARCHAR" property="userPhone" />
     <result column="user_name" jdbcType="VARCHAR" property="userName" />
-    <result column="delivery_total" jdbcType="REAL" property="deliveryTotal" />
+    <result column="delivery_total" jdbcType="DECIMAL" property="deliveryTotal" />
     <result column="status" jdbcType="INTEGER" property="status" />
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
@@ -74,6 +74,6 @@
   </select>
 
   <select id="selectDeliveryFororderId" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select * delivery_order where orders_id=#{orderId}
+    select * from delivery_order where orders_id=#{orderId}
   </select>
 </mapper>

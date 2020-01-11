@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 
@@ -31,22 +32,25 @@ public class IntegralMallController {
     /**
      * 积分商城商品添加
      * @param file
-     * @param productId
+     * @param pointsMallProducts
      * @param request
      * @return
      */
     @RequestMapping("picture")
     @ResponseBody
-    public int upload(MultipartFile[] file,Long productId,HttpServletRequest request) {
+    public int upload(MultipartFile[] file,PointsMallProducts pointsMallProducts,HttpServletRequest request) {
 
         String newName = null;
         String exeName = null;
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
+        Date date=new Date();
+        pointsMallProducts.setAddingTime(date);
+        Long id=integralService.productinsert(pointsMallProducts);
         if(file!=null){
 
             String fileName=null;
 
             try {
-
                 for (int i = 0; i < file.length; i++) {
 
                     if (!file[i].isEmpty()) {
@@ -65,8 +69,8 @@ public class IntegralMallController {
                         file[i].transferTo(pic);
                         MallProductsPicture mallProductsPicture=new MallProductsPicture();
                         mallProductsPicture.setPictureUrl("http://pic.armylife.cn/Mall/" +newName + exeName);
-                        mallProductsPicture.setProductId(productId);
-                        integralService.Productinsert(mallProductsPicture);
+                        mallProductsPicture.setProductId(id);
+                        integralService.pictureInsert(mallProductsPicture);
                         return 1;
                     }
                 }

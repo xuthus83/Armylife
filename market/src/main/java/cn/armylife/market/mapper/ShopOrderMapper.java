@@ -1,6 +1,7 @@
 package cn.armylife.market.mapper;
 
 import cn.armylife.common.domain.DeliveryOrder;
+import cn.armylife.common.domain.Hairvip;
 import cn.armylife.common.domain.Payments;
 import cn.armylife.common.domain.ShopOrder;
 import com.github.pagehelper.Page;
@@ -181,4 +182,13 @@ public interface ShopOrderMapper {
      * @return
      */
     List<ShopOrder> selectOrderForHair();
+
+    /**
+     * 查询理发店会员最近消费订单
+     * @param stuId
+     * @return
+     */
+    ShopOrder selectOrderForHairVip(Long stuId);
+
+
 }

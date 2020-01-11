@@ -29,6 +29,14 @@ zuul:
       path: /IntegralMall/**
       serviceId: integralservice
       sensitiveHeaders:
+    Union:
+      path: /Union/**
+      serviceId: unionservice
+      sensitiveHeaders:
+    Admin:
+      path: /Admin/**
+      serviceId: adminservice
+      sensitiveHeaders:
 
 spring:
   profiles:

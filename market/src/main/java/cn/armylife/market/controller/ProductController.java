@@ -271,10 +271,10 @@ public class ProductController {
 
     @RequestMapping("/ReExpressCart")
     @ResponseBody
-    public int ReExpresspingCart(int num,HttpServletRequest request){
+    public int ReExpresspingCart(HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
-        redisTemplate.opsForList().remove("userId-"+member.getMemberId(),0,num);
+        redisTemplate.opsForList().leftPop("userId-"+member.getMemberId());
         return 1;
     }
 
@@ -500,6 +500,5 @@ public class ProductController {
         int num=orderService.getShopPeople(orderId);
         return num+1;
     };
-
 
 }

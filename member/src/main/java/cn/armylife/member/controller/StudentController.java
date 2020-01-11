@@ -1,6 +1,7 @@
 package cn.armylife.member.controller;
 
 import cn.armylife.common.domain.Member;
+import cn.armylife.common.domain.MemberDeliveryaddress;
 import cn.armylife.common.domain.Product;
 import cn.armylife.member.service.MemberService;
 import org.slf4j.Logger;
@@ -61,6 +62,12 @@ public class StudentController {
         return memberService.productForTag(shopId);
     };
 
+    /**
+     *
+     * @param code
+     * @param request
+     * @return
+     */
     @RequestMapping("loginDev")
     @ResponseBody
     public int loginUser(String code, HttpServletRequest request){
@@ -71,5 +78,53 @@ public class StudentController {
 
     }
 
+    /**
+     * 添加用户收货地址
+     * @param memberDeliveryaddress
+     * @return
+     */
+    @RequestMapping("addressInsert")
+    @ResponseBody
+    public int addressInsert(MemberDeliveryaddress memberDeliveryaddress,HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Student");
+        memberDeliveryaddress.setMemberId(member.getMemberId());
+        return memberService.addressInsert(memberDeliveryaddress);
+    };
 
+    /**
+     * 删除收货地址
+     * @param addressId
+     * @return
+     */
+    @RequestMapping("removeAddress")
+    @ResponseBody
+    public int removeAddress(Long addressId){
+        return memberService.removeAddress(addressId);
+    };
+
+    /**
+     * 查询用户收货地址
+     * @param request
+     * @return
+     */
+    @RequestMapping("searchAddress")
+    @ResponseBody
+    public List<MemberDeliveryaddress> searchAddress(HttpServletRequest request){
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Student");
+        return memberService.searchAddress(member.getMemberId());
+    };
+
+    /**
+     * 修改地址
+     * @param memberDeliveryaddress
+     * @return
+     */
+    @RequestMapping("updateAddress")
+    @ResponseBody
+    public int updateAddress(MemberDeliveryaddress memberDeliveryaddress){
+        return memberService.updateAddress(memberDeliveryaddress);
+    };
 }
+

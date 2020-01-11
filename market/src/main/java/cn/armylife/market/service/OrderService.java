@@ -179,9 +179,23 @@ public interface OrderService {
     int creatPeople(ShopOrder shopOrder);
 
     /**
-     *
+     *查询所有会员
      * @return
      */
     List<Hairvip> selectHairAll();
+
+    /**
+     * 通过会员名查询用户信息
+     * @param vipName
+     * @return
+     */
+    List<Hairvip> searchHairVip(String vipName);
+
+    /**
+     * 商家控制用户的次数
+     * @param hairvip
+     * @return
+     */
+    int editHairNum(Hairvip hairvip,int code);
 
 }

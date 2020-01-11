@@ -70,14 +70,17 @@ public class OrderServiceImpl implements OrderService {
         Product product=new Product();
         String productIds="";
         String firstproduct="";
+        BigDecimal orderTotal=shopOrder.getOrderTotal();
+        Member shop=new Member();
+        if (orderExpress!=1){
         Long shopId= shopOrder.getShopId();
-        Member shop=memberService.selectMemberforId(shopId);
-        if (shop.getAlid().equals("HAIR0505")&&productLists==null){
+        shop=memberService.selectMemberforId(shopId);
+        if (shop.getAlid().equals("HAIR0505")&&productLists==null&&orderExpress==2){
             shopOrder.setOrdersStatus("3");
         }
         logger.info("orderExpress:"+orderExpress);
-        BigDecimal orderTotal=shopOrder.getOrderTotal();
-        if (orderExpress==0){
+        }
+        else  if (orderExpress==0){
             for (int i=0;i<productLists.size();i++) {
             logger.info("执行获取商品");
             product=productLists.get(i);
@@ -200,12 +203,12 @@ public class OrderServiceImpl implements OrderService {
                     wXtemplate.setOpenid(student.getMemberWechat());
                     wXtemplate.setTemplate("4qL32-V24Fvljz3c1GynCqd2CzjKRiYHxsu9ke-08Ko");
                     wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+hairOrder.getOrdersId());
-                    wXtemplate.setFirst("排队通知:你当前排第"+num+"位,为避免失效请及时前往理发");
+                    wXtemplate.setFirst("排队通知:你当前排第"+(num+1)+"位,为避免失效请及时前往理发");
                     wXtemplate.setRemark1("感谢您的使用!");
                     Map<String,String> key=new HashMap<>();
                     key.put("key1",shop.getShopName());
                     key.put("key2",String.valueOf(num+1));
-                    key.put("key3",String.valueOf(num+1));
+                    key.put("key3",String.valueOf(num));
                     key.put("key4","排队中");
                     key.put("key5",sdf.format(new Date()));
                     wXtemplate.setKey(key);
@@ -223,23 +226,24 @@ public class OrderServiceImpl implements OrderService {
      */
     public int orderFulfillment(Long orderId){
         ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
-
-        //获取商家Id,更新商家金额
-        Long shopId=shopOrder.getShopId();
-        Member shop=memberService.selectMemberforId(shopId);
-        BigDecimal oldAmount=shop.getMemberTotal();
-        BigDecimal addAmount=shopOrder.getOrderTotal();
-        BigDecimal newAmount=oldAmount.add(addAmount);
-        shopOrderMapper.orderFulfillment(newAmount,shopId);
-
+        if (shopOrder.getIsexpress()==0) {
+    //获取商家Id,更新商家金额
+        Long shopId = shopOrder.getShopId();
+        Member shop = memberService.selectMemberforId(shopId);
+        BigDecimal oldAmount = shop.getMemberTotal();
+        BigDecimal addAmount = shopOrder.getOrderTotal();
+        BigDecimal newAmount = oldAmount.add(addAmount);
+        shopOrderMapper.orderFulfillment(newAmount, shopId);
+    }
         //获取跑腿Id,更新跑腿金额
         Long deliveryId=shopOrderMapper.selectdeliveryForOrder(orderId).getDeliveryUserId();
+        DeliveryOrder deliveryOrder=deliveryOrderMapper.selectDeliveryFororderId(orderId);
         Member delivery=memberService.selectMemberforId(deliveryId);
         BigDecimal oldTotal=delivery.getMemberTotal();
-        BigDecimal addTotal=shopOrder.getDeliveryTotal();
-        BigDecimal num=new BigDecimal(0.9);
+        BigDecimal addTotal=deliveryOrder.getDeliveryTotal();
+        BigDecimal num=new BigDecimal(0.98);
         BigDecimal newmoney=addTotal.multiply(num);
-        logger.info("跑腿送达后的钱:"+newmoney+"跑腿费:"+addAmount+"本金:"+oldTotal);
+        logger.info("跑腿送达后的钱:"+newmoney+"跑腿费:"+addTotal+"本金:"+oldTotal);
         BigDecimal newTotal=oldTotal.add(newmoney);
         shopOrderMapper.orderFulfillment(newTotal,deliveryId);
 
@@ -373,7 +377,6 @@ public class OrderServiceImpl implements OrderService {
             totalfee=shopOrder.getOrderTotal();
         }
         logger.info("退款资金"+totalfee);
-        String desc="订单退款";
         String refundOrderId=String.valueOf(shopOrder.getOrdersId());
         BigDecimal orderTotal=totalfee;
         String order=String.valueOf(shopOrder.getOrdersId());
@@ -382,7 +385,7 @@ public class OrderServiceImpl implements OrderService {
         switch (payments.getPayApp()){
             case "2":
                 logger.info("支付宝退款");
-                msg=payMentsService.Alipayrefund(String.valueOf(orderId),"退款申请",totalfee.toString(),"取消订单");
+                msg=payMentsService.Alipayrefund(refundOrderId,"退款申请",totalfee.toString(),"取消订单");
                 if (msg==0){
                     return 0;
                 }
@@ -528,8 +531,47 @@ public class OrderServiceImpl implements OrderService {
         return shopOrderMapper.insert(shopOrder);
     }
 
+    /**
+     * 查询所有已领取会员
+     * @return
+     */
     @Override
     public List<Hairvip> selectHairAll(){
-        return hairvipMapper.selectAll();
+        List<Hairvip> hairvips=hairvipMapper.searchAll();
+        return hairvips;
+    };
+
+    /**
+     * 通过会员名查询用户信息
+     * @param vipName
+     * @return
+     */
+    public List<Hairvip> searchHairVip(String vipName){
+        List<Hairvip> hairvips=hairvipMapper.searchHairVip(vipName);
+        for (int i=0;i<hairvips.size();i++){
+            ShopOrder shopOrder= shopOrderMapper.selectOrderForHairVip(hairvips.get(i).getVipId());
+            hairvips.get(i).setShopOrder(shopOrder);
+        }
+        return hairvips;
+    };
+
+    /**
+     * 商家控制用户的次数
+     * @param hairvip
+     * @return
+     */
+    public int editHairNum(Hairvip hairvip,int code){
+            Hairvip member=hairvipMapper.selectHairvip(hairvip.getVipId());
+            int lastNum=Integer.valueOf(member.getHairvipNum());
+            String num="";
+            if(code==1){
+                num=String.valueOf(lastNum+1);
+            }else if(code==2){
+                num=String.valueOf(lastNum-1);
+            }
+            Hairvip hairvip1=new Hairvip();
+            hairvip1.setVipId(hairvip.getVipId());
+            hairvip1.setHairvipNum(num);
+            return hairvipMapper.updateHair(hairvip1);
     };
 }

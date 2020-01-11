@@ -23,6 +23,8 @@ public interface HairvipMapper {
      */
     List<Hairvip> selectAll();
 
+    List<Hairvip> searchAll();
+
     /**
      * 查找理发店会员
      * @param memberId
@@ -36,5 +38,12 @@ public interface HairvipMapper {
      * @return
      */
     int updateHair(Hairvip hairvip);
+
+    /**
+     * 通过会员名查询用户信息
+     * @param vipName
+     * @return
+     */
+    List<Hairvip> searchHairVip(String vipName);
 }
 
