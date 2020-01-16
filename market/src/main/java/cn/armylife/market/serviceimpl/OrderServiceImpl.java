@@ -75,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
         if (orderExpress!=1){
         Long shopId= shopOrder.getShopId();
         shop=memberService.selectMemberforId(shopId);
-        if (shop.getAlid().equals("HAIR0505")&&productLists==null&&orderExpress==2){
+        if ("HAIR0505".equals(shop.getAlid())&&productLists==null&&orderExpress==2){
             shopOrder.setOrdersStatus("3");
         }
         logger.info("orderExpress:"+orderExpress);
@@ -93,14 +93,16 @@ public class OrderServiceImpl implements OrderService {
             orderDetail.setOrderDetailNum(num);
             productIds=productIds+","+product.getProductId();
             orderDetailMapper.insert(orderDetail);
-            if (shop.getAlid().equals("REST0202")){
-                if (shopOrder.getOrdersType()==1||shopOrder.getOrdersType()==2){//获取商品数量餐盒费+1
+            if ("REST0202".equals(shop.getAlid())){
+                //获取商品数量餐盒费+1
+                if (shopOrder.getOrdersType()==1||shopOrder.getOrdersType()==2){
                 orderTotal=orderTotal.add(product.getProductBoxfee().multiply(new BigDecimal(num)));
-                    logger.info("餐盒金额:"+orderTotal);
+//                    logger.info("餐盒金额:"+orderTotal);
                 }
-                else if (shopOrder.getOrdersType()==3){//获取到店人数 餐盒费+1
+                //获取到店人数 餐盒费+1
+                else if (shopOrder.getOrdersType()==3){
                     orderTotal=orderTotal.add(new BigDecimal(shopOrder.getOrdersPeople()+1));
-                    logger.info("到店人数金额:"+orderTotal);
+//                    logger.info("到店人数金额:"+orderTotal);
                 }}
         }}
         WXtemplate wXtemplate1=new WXtemplate();
@@ -117,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
             key1.put("key5","已付款");
             wXtemplate1.setKey(key1);
             wXtemplate1.setKey(key1);
-            wXtemplate1.setUrl("Business/OrderDetails3.html?ordersId="+String.valueOf(shopOrder.getOrdersId()));
+            wXtemplate1.setUrl("Business/OrderWechat.html?ordersId="+String.valueOf(shopOrder.getOrdersId()));
             messageWechat.newOrderService(wXtemplate1);
             Hairvip hairvip=hairvipMapper.selectHairvip(shopOrder.getStuId());
             if (hairvip!=null){
@@ -147,6 +149,7 @@ public class OrderServiceImpl implements OrderService {
      * @param shopOrder
      * @return
      */
+    @Override
     public Page<ShopOrder> selectAllForMember(ShopOrder shopOrder){
         return shopOrderMapper.selectAllForMember(shopOrder);
     };
@@ -156,6 +159,7 @@ public class OrderServiceImpl implements OrderService {
      * @param deliveryOrder
      * @return
      */
+    @Override
     public Page<DeliveryOrder> selectAlldeliveryForMember(DeliveryOrder deliveryOrder){
         return shopOrderMapper.selectAlldeliveryForMember(deliveryOrder);
     };
@@ -165,6 +169,7 @@ public class OrderServiceImpl implements OrderService {
      * @param shopOrder
      * @return
      */
+    @Override
     public int endOrders(ShopOrder shopOrder){
         return shopOrderMapper.updateShopOrder(shopOrder);
     };
@@ -174,6 +179,7 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersId
      * @return
      */
+    @Override
     public int updateMemberTotal(Long ordersId){
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         ShopOrder shopOrder=new ShopOrder();
@@ -190,7 +196,7 @@ public class OrderServiceImpl implements OrderService {
             return 0;
         }
         int msg1=shopOrderMapper.updateShopOrder(shopOrder);
-        if (order.getMember().getAlid().equals("HAIR0505")){
+        if ("HAIR0505".equals(order.getMember().getAlid())){
             List<ShopOrder> shopOrderList=shopOrderMapper.selectOrderForHair();
             for (int i=0;i<shopOrderList.size();i++){
                 ShopOrder hairOrder=shopOrderList.get(i);
@@ -202,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
                     WXtemplate wXtemplate=new WXtemplate();
                     wXtemplate.setOpenid(student.getMemberWechat());
                     wXtemplate.setTemplate("4qL32-V24Fvljz3c1GynCqd2CzjKRiYHxsu9ke-08Ko");
-                    wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+hairOrder.getOrdersId());
+                    wXtemplate.setUrl("ArmyStudents/OrderWechat.html?ordersId="+hairOrder.getOrdersId());
                     wXtemplate.setFirst("排队通知:你当前排第"+(num+1)+"位,为避免失效请及时前往理发");
                     wXtemplate.setRemark1("感谢您的使用!");
                     Map<String,String> key=new HashMap<>();
@@ -224,6 +230,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderId
      * @return
      */
+    @Override
     public int orderFulfillment(Long orderId){
         ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
         if (shopOrder.getIsexpress()==0) {
@@ -276,6 +283,7 @@ public class OrderServiceImpl implements OrderService {
      * @param afterOrder
      * @return
      */
+    @Override
     public int AddAfterOrder(AfterOrder afterOrder){
         SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
         Date date=new Date();
@@ -289,6 +297,7 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersId
      * @return
      */
+    @Override
     public AfterOrder SelectAfterOrder(Long ordersId){
         AfterOrder afterOrder=afterOrderMapper.SelectAfterOrder(ordersId);
         return afterOrder;
@@ -299,6 +308,7 @@ public class OrderServiceImpl implements OrderService {
      * 可查询跑腿订单
      * @return
      */
+    @Override
     public List<DeliveryOrder> selectAlldelivery(){
         return shopOrderMapper.selectAlldelivery();
     };
@@ -307,6 +317,7 @@ public class OrderServiceImpl implements OrderService {
      * 得到当前商铺排队人数(通过订单Id)
      * @return
      */
+    @Override
     public int getShopPeople(Long ordersId){
         return shopOrderMapper.shopPeople(ordersId);
     };
@@ -328,6 +339,7 @@ public class OrderServiceImpl implements OrderService {
      * @param shopId
      * @return
      */
+    @Override
     public String rankMonthPayForShop(Long shopId){
         return shopOrderMapper.rankMonthPayForShop(shopId);
     };
@@ -337,6 +349,7 @@ public class OrderServiceImpl implements OrderService {
      * @param shopId
      * @return
      */
+    @Override
     public String rankDayPayForShop(Long shopId){
        return shopOrderMapper.rankDayPayForShop(shopId);
     };
@@ -346,6 +359,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderId
      * @return
      */
+    @Override
     public int confirmOrder(Long orderId){
         return shopOrderMapper.confirmOrder(orderId);
     };
@@ -355,6 +369,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderId
      * @return
      */
+    @Override
     public int rejectRefund(Long orderId){
         return shopOrderMapper.rejectRefund(orderId);
     };
@@ -364,6 +379,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderId
      * @return
      */
+    @Override
     public int confirmRefund(Long orderId){
         ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
         BigDecimal totalfee=null;
@@ -406,6 +422,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderId
      * @return
      */
+    @Override
     public int afterOrderRefund(Long orderId, BigDecimal total){
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         ShopOrder shopOrder=shopOrderMapper.selectOrder(orderId);
@@ -461,6 +478,7 @@ public class OrderServiceImpl implements OrderService {
         return shopOrderMapper.selectEndOrder(stuId);
     };
 
+    @Override
     public List<ShopOrder> selectAfterOrder(){
         return shopOrderMapper.selectAfterOrder();
     };
@@ -469,6 +487,7 @@ public class OrderServiceImpl implements OrderService {
     public int updateHairAmount(String total,Long memberId,Long payments){
         Payments payments1=new Payments();
         ShopOrder shopOrder=new ShopOrder();
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         if(paymentsMapper.selectPaymentsForId(payments)==null){
             return 0;
         }else{
@@ -479,7 +498,8 @@ public class OrderServiceImpl implements OrderService {
                 Hairvip hairvip=new Hairvip();
                 hairvip.setVipId(memberId);
                 hairvip.setHairvipNum("11");
-//                hairvip.setCreatTime();
+                hairvip.setCreatTime(sdf.format(new Date()));
+                hairvip.setHaivipAddress(shopOrder.getOrdersAddress());
                 hairvip.setIs(1);
                 hairvip.setHairvipName(shopOrder.getMemberName());
                 hairvip.setHairvipPhone(shopOrder.getUserPhone());
@@ -546,6 +566,7 @@ public class OrderServiceImpl implements OrderService {
      * @param vipName
      * @return
      */
+    @Override
     public List<Hairvip> searchHairVip(String vipName){
         List<Hairvip> hairvips=hairvipMapper.searchHairVip(vipName);
         for (int i=0;i<hairvips.size();i++){
@@ -560,6 +581,7 @@ public class OrderServiceImpl implements OrderService {
      * @param hairvip
      * @return
      */
+    @Override
     public int editHairNum(Hairvip hairvip,int code){
             Hairvip member=hairvipMapper.selectHairvip(hairvip.getVipId());
             int lastNum=Integer.valueOf(member.getHairvipNum());

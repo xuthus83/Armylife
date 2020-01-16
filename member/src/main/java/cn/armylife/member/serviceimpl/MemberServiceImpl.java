@@ -1,7 +1,5 @@
 package cn.armylife.member.serviceimpl;
 
-//import Users;
-
 import cn.armylife.common.domain.Member;
 import cn.armylife.common.domain.MemberDeliveryaddress;
 import cn.armylife.common.domain.Product;
@@ -56,6 +54,7 @@ public class MemberServiceImpl implements MemberService {
      * @param member
      * @return
      */
+    @Override
     public Member loginShop(Member member){
         return memberMapper.loginShop(member);
     };
@@ -65,6 +64,7 @@ public class MemberServiceImpl implements MemberService {
      * @param memberId
      * @return
      */
+    @Override
     public Member reloadSession(Long memberId){
         return memberMapper.reloadSession(memberId);
     };
@@ -74,6 +74,7 @@ public class MemberServiceImpl implements MemberService {
      * @param member
      * @return
      */
+    @Override
     public int updateMember(Member member){
         return memberMapper.updateMember(member);
     };
@@ -83,6 +84,7 @@ public class MemberServiceImpl implements MemberService {
      * @param openid
      * @return
      */
+    @Override
     public boolean inspectMemberForOpenId(String openid,String type){//验证通过,返回ture.失败返回false
         Member user=new Member();
         user.setMemberType(type);
@@ -99,6 +101,7 @@ public class MemberServiceImpl implements MemberService {
      * @param phone
      * @return
      */
+    @Override
     public Boolean inspectMemberForPhone(String phone,String type){
         Member member=memberMapper.inspectMemberForPhone(phone,type);
         if (member==null){
@@ -112,8 +115,9 @@ public class MemberServiceImpl implements MemberService {
      * @param alid
      * @return
      */
+    @Override
     public Boolean inspectShopForALID(String alid){
-       if(alid.equals("FRUI0101")||alid.equals("REST0202")||alid.equals("BOOK0303")||alid.equals("SHOT0404")||alid.equals("HAIR0505")||alid.equals("MTEA0606")){
+       if("FRUI0101".equals(alid)||"REST0202".equals(alid)||"BOOK0303".equals(alid)||"SHOT0404".equals(alid)||"HAIR0505".equals(alid)||"MTEA0606".equals(alid)){
            return true;
        }else {
            return false;
@@ -125,6 +129,7 @@ public class MemberServiceImpl implements MemberService {
      * @param member
      * @return
      */
+    @Override
     public int updateDeliveryPhone(Member member){
         return memberMapper.updateDeliveryPhone(member);
     };
@@ -134,6 +139,7 @@ public class MemberServiceImpl implements MemberService {
      * @param record
      * @return
      */
+    @Override
     public int deliveryinsert(Transactions record){
         return transactionsMapper.insert(record);
     };
@@ -143,6 +149,7 @@ public class MemberServiceImpl implements MemberService {
      * @param payUser
      * @return
      */
+    @Override
     public Page<Transactions> selectForDelivery(Long payUser){
         return transactionsMapper.selectForDelivery(payUser);
     };
@@ -152,6 +159,7 @@ public class MemberServiceImpl implements MemberService {
      * @param memberId
      * @return
      */
+    @Override
     public Member selectMemberforId(Long memberId){
         return memberMapper.selectMemberforId(memberId);
     };
@@ -161,6 +169,7 @@ public class MemberServiceImpl implements MemberService {
      * @param appId
      * @return
      */
+    @Override
     public Member ShopNewForAppId(String appId){
         return memberMapper.ShopNewForAppId(appId);
     };
@@ -170,6 +179,7 @@ public class MemberServiceImpl implements MemberService {
      * @param shopId
      * @return
      */
+    @Override
     public List<Product> productForTag(long shopId){
         return productMapper.productForTag(shopId);
     };
@@ -180,6 +190,7 @@ public class MemberServiceImpl implements MemberService {
      * @param total
      * @return
      */
+    @Override
     public int isdeliver(Long shopId,String total){
         return memberMapper.isdeliver(shopId,total);
     };
@@ -197,6 +208,7 @@ public class MemberServiceImpl implements MemberService {
      * @param memberDeliveryaddress
      * @return
      */
+    @Override
     public int addressInsert(MemberDeliveryaddress memberDeliveryaddress){
         SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         memberDeliveryaddress.setCreatTime(new Date());
@@ -208,6 +220,7 @@ public class MemberServiceImpl implements MemberService {
      * @param addressId
      * @return
      */
+    @Override
     public int removeAddress(Long addressId){
         return memberDeliveryaddressMapper.removeAddress(addressId);
     };
@@ -217,6 +230,7 @@ public class MemberServiceImpl implements MemberService {
      * @param memberId
      * @return
      */
+    @Override
     public List<MemberDeliveryaddress> searchAddress(Long memberId){
         return memberDeliveryaddressMapper.searchAddress(memberId);
     };
@@ -226,6 +240,7 @@ public class MemberServiceImpl implements MemberService {
      * @param memberDeliveryaddress
      * @return
      */
+    @Override
     public int updateAddress(MemberDeliveryaddress memberDeliveryaddress){
         return memberDeliveryaddressMapper.updateAddress(memberDeliveryaddress);
     };

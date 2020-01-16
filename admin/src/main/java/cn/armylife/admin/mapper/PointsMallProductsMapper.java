@@ -4,8 +4,6 @@ import cn.armylife.admin.domain.PointsMallProducts;
 import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
-
 @Mapper
 public interface PointsMallProductsMapper {
     /**
@@ -23,4 +21,18 @@ public interface PointsMallProductsMapper {
      * @mbggenerated
      */
     Page<PointsMallProducts> selectAll();
+
+    /**
+     * 更新商品数据
+     * @param pointsMallProducts
+     * @return
+     */
+    int updateProduct(PointsMallProducts pointsMallProducts);
+
+    /**
+     * 通过ID查询商品
+     * @param pointsMallProductsId
+     * @return
+     */
+    PointsMallProducts selectForId(Long pointsMallProductsId);
 }

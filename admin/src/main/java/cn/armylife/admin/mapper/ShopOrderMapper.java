@@ -1,6 +1,7 @@
 package cn.armylife.admin.mapper;
 
 import cn.armylife.admin.domain.ShopOrder;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -21,5 +22,12 @@ public interface ShopOrderMapper {
      *
      * @mbggenerated
      */
-    List<ShopOrder> selectAll();
+    Page<ShopOrder> selectAll();
+
+    /**
+     * 查询当日总收入
+     * @param time
+     * @return
+     */
+    Integer incomeToDay(String time);
 }

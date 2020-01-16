@@ -1,9 +1,8 @@
 package cn.armylife.admin.mapper;
 
 import cn.armylife.admin.domain.Member;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
 
 @Mapper
 public interface MemberMapper {
@@ -21,5 +20,18 @@ public interface MemberMapper {
      *
      * @mbggenerated
      */
-    List<Member> selectAll();
+    Page<Member> selectAll();
+
+    /**
+     * 查询用户总数
+     * @return
+     */
+    Integer numberForUsers();
+
+    /**
+     * 查询时间段数据
+     * @param time
+     * @return
+     */
+    Integer weekNumForUsers(String time);
 }

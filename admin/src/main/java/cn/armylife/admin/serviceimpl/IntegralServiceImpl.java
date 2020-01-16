@@ -1,7 +1,9 @@
 package cn.armylife.admin.serviceimpl;
 
+import cn.armylife.admin.domain.Admin;
 import cn.armylife.admin.domain.MallProductsPicture;
 import cn.armylife.admin.domain.PointsMallProducts;
+import cn.armylife.admin.mapper.AdminMapper;
 import cn.armylife.admin.mapper.MallProductsDetailMapper;
 import cn.armylife.admin.mapper.MallProductsPictureMapper;
 import cn.armylife.admin.mapper.PointsMallProductsMapper;
@@ -19,6 +21,8 @@ public class IntegralServiceImpl implements IntegralService {
     MallProductsPictureMapper mallProductsPictureMapper;
     @Autowired
     MallProductsDetailMapper mallProductsDetail;
+    @Autowired
+    AdminMapper adminMapper;
 
 
     /**
@@ -37,6 +41,7 @@ public class IntegralServiceImpl implements IntegralService {
      * @param
      * @return
      */
+    @Override
     public int pictureInsert(MallProductsPicture mallProductsPicture){
         return mallProductsPictureMapper.insert(mallProductsPicture);
     };
@@ -50,5 +55,24 @@ public class IntegralServiceImpl implements IntegralService {
         return pointsMallProductsMapper.selectAll();
     };
 
+    /**
+     * 更新商品数据
+     * @param pointsMallProducts
+     * @return
+     */
+    @Override
+    public int updateProduct(PointsMallProducts pointsMallProducts){
+        return pointsMallProductsMapper.updateProduct(pointsMallProducts);
+    };
+
+    /**
+     * 通过ID查询商品
+     * @param pointsMallProductsId
+     * @return
+     */
+    @Override
+    public PointsMallProducts selectForId(Long pointsMallProductsId){
+        return pointsMallProductsMapper.selectForId(pointsMallProductsId);
+    };
 
 }

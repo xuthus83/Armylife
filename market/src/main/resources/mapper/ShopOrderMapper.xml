@@ -299,7 +299,8 @@
   <select id="selectEndOrder" parameterType="java.lang.Long" resultMap="BaseResultMap">
     SELECT *,p.product_avator as avator from shop_order so
     left join product p on p.product_id=so.first_product
-   left join member m on so.shop_id=m.member_id where stu_id=#{stuId} and orders_status=6  or orders_status=7 or orders_status=8
+   left join member m on so.shop_id=m.member_id where stu_id=#{stuId} and (orders_status=6  or orders_status=7 or orders_status=8)
+   order by creat_time desc
   </select>
 <!--  更新用户金额-->
   <update id="orderFulfillment">

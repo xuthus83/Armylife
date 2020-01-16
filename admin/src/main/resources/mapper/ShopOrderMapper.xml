@@ -67,4 +67,7 @@
     end_time, is_refund, refund_desc, isexpress, is_show
     from shop_order
   </select>
+  <select id="incomeToDay" resultType="java.lang.Integer" parameterType="java.lang.String">
+    select sum(order_total) from shop_order where orders_status!=1 and orders_status!=8 and creat_time LIKE concat(concat('%',#{time}),'%')
+  </select>
 </mapper>

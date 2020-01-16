@@ -1,5 +1,6 @@
 package cn.armylife.admin.service;
 
+import cn.armylife.admin.domain.Admin;
 import cn.armylife.admin.domain.MallProductsPicture;
 import cn.armylife.admin.domain.PointsMallProducts;
 import com.github.pagehelper.Page;
@@ -26,4 +27,19 @@ public interface IntegralService {
      * @return
      */
     Page<PointsMallProducts> productSelectAll();
+
+    /**
+     * 更新商品数据
+     * @param pointsMallProducts
+     * @return
+     */
+    int updateProduct(PointsMallProducts pointsMallProducts);
+
+    /**
+     * 通过ID查询商品
+     * @param pointsMallProductsId
+     * @return
+     */
+    PointsMallProducts selectForId(Long pointsMallProductsId);
+
 }

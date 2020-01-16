@@ -250,10 +250,11 @@ public class PayMentsController {
                         ShopOrder order=payMentsService.selectOrder(ordersId);
                         if (order.getIsexpress()==1){
                             shopOrder.setOrdersStatus("3");
-                        }else if (attach.equals("2")){
+                        }else if (order.getShopId()==29){
                             logger.info("进入理发店流程");
                             shopOrder.setOrdersStatus("3");
-                        }else if (attach.equals("4")){
+                        }
+                        if (attach.equals("4")){
                             shopOrder.setOrdersStatus("6");
                             marketService.updateHairAmount(String.valueOf(total),payment1.getPayName(),paymentsId);
                         }else if(attach.equals("6")){
@@ -287,7 +288,7 @@ public class PayMentsController {
                         key.put("key1",String.valueOf(ordersId));
                         key.put("key2",creatTime);
                         wXtemplate.setKey(key);
-                        wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+ordersId);
+                        wXtemplate.setUrl("ArmyStudents/OrderWechat.html?ordersId="+ordersId);
                         messageWechat.newOrderService(wXtemplate);
                         WXtemplate wXtemplate1=new WXtemplate();
                         if (order.getIsexpress()!=1) {

@@ -25,7 +25,7 @@ spring:
     nacos:
       discovery:
         server-addr: 118.31.121.141:8848
-        namespace: e9b9f971-7391-4692-b9ae-50b00ab26924
+#        namespace: e9b9f971-7391-4692-b9ae-50b00ab26924
     sentinel:
       transport:
         port: 8719

@@ -63,7 +63,8 @@ public class OrderController {
     @ResponseBody
     public Long creatShopOrder(ShopOrder shopOrder,Integer orderExpress, HttpServletRequest request) throws ParseException,Exception {
         HttpSession session=request.getSession();
-        Member member=(Member)session.getAttribute("Student");
+        Member member1=(Member)session.getAttribute("Student");
+        Member member=memberService.selectMemberforId(member1.getMemberId());
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date=new Date();
         String creatime=sdf.format(date);
@@ -73,7 +74,7 @@ public class OrderController {
         try {
             shopOrder.setEndTime(sdf.parse(shopOrder.getAppintment()));
         }catch (NullPointerException e){
-            e.printStackTrace();
+//            e.printStackTrace();
 //            shopOrder.setEndTime(new Date("0000-00-00 00:00:00"));
         }
         Long int1 = NumberID.nextId(port);
@@ -91,13 +92,15 @@ public class OrderController {
         productList=(List<Product>) lo.index("userId-"+member.getMemberId()+"s"+shopOrder.getShopId(), 0);
         logger.info("orderExpress:"+orderExpress);
     try {
+        int code=2;
          if (orderExpress==1){
              shopOrder.setShopId(5L);
              shopOrder.setIsdelivery(1);
              shopOrder.setIsexpress(1);
              shopOrder.setDeliveryTotal(shopOrder.getOrderTotal());
              shopOrder.setOrderTotal(new BigDecimal(0));
-            for (int i=0;i<ll.size("userId-"+member.getMemberId());i++){
+             String userId="userId-";
+            for (int i=0;i<ll.size(userId+member.getMemberId());i++){
                 expressList.add(ll.index("userId-"+member.getMemberId(), i));
             }
             for (int i=0;i<expressList.size();i++){
@@ -105,7 +108,7 @@ public class OrderController {
                 orderDetail.setOrderId(int1);
                 orderService.orderdatailinsert(orderDetail);
             }
-        }else if(orderExpress==2){
+        }else if(code==orderExpress){
             logger.info("不是快递,是理发会员");
             orderExpress=2;
         }
@@ -115,7 +118,7 @@ public class OrderController {
         }
         int msg =orderService.insert(shopOrder,productList,orderExpress);
         if (msg==0){
-            return 0l;
+            return 0L;
         }
         if (shopOrder.getOrderTotal().compareTo(new BigDecimal(0))==0&&shopOrder.getIsexpress()==0){
             WXtemplate wXtemplate=new WXtemplate();
@@ -127,7 +130,7 @@ public class OrderController {
             key.put("key1",String.valueOf(int1));
             key.put("key2",creatime);
             wXtemplate.setKey(key);
-            wXtemplate.setUrl("Students/OrderDetails3.html?ordersId="+int1);
+            wXtemplate.setUrl("ArmyStudents/OrderWechat.html?ordersId="+int1);
             messageWechat.newOrderService(wXtemplate);
         }
         lo.rightPop("userId-"+member.getMemberId()+"s"+shopOrder.getShopId());
@@ -180,7 +183,7 @@ public class OrderController {
     public List<DeliveryOrder> selectAlldeliveryForMember(DeliveryOrder deliveryOrder,HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Delivery");
-        if (member==null||!member.getMemberType().equals("2")){
+        if (member==null||!"2".equals(member.getMemberType())){
             logger.info("用户未登录,阻止进行");
             return null;
         }
@@ -251,7 +254,7 @@ public class OrderController {
      */
     @RequestMapping("EnableOrder")
     @ResponseBody
-    public int EnableOrder(Long ordersId,HttpServletRequest request){
+    public int enableOrder(Long ordersId,HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Delivery");
         ShopOrder shopOrder=orderService.selectOrder(ordersId);
@@ -282,7 +285,7 @@ public class OrderController {
      */
     @RequestMapping("AddAfterOrder")
     @ResponseBody
-    public int AddAfterOrder(AfterOrder afterOrder,Long ordersId, @RequestParam(value = "productIds[]") String[] productIds, String people, HttpServletRequest request){
+    public int addAfterOrder(AfterOrder afterOrder,Long ordersId, @RequestParam(value = "productIds[]") String[] productIds, String people, HttpServletRequest request){
         HttpSession session=request.getSession();
         Member member=(Member)session.getAttribute("Student");
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd");
@@ -328,7 +331,7 @@ public class OrderController {
      */
     @RequestMapping("SelectAfterOrder")
     @ResponseBody
-    public AfterOrder SelectAfterOrder(Long orderId){
+    public AfterOrder selectAfterOrder(Long orderId){
         return orderService.SelectAfterOrder(orderId);
     }
 
@@ -407,7 +410,7 @@ public class OrderController {
             logger.info("空指针异常"+e);
         }
         logger.info(member.toString());
-        if (member==null||!member.getMemberType().equals("2")){
+        if (member==null||!"2".equals(member.getMemberType())){
             logger.info("用户未登录,阻止进行");
             return null;
         }
@@ -542,7 +545,7 @@ public class OrderController {
      */
     @RequestMapping("EndProduct")
     @ResponseBody
-    public int EndProduct(Long ordersId,HttpServletRequest request){
+    public int endProduct(Long ordersId,HttpServletRequest request){
         HttpSession session=request.getSession();
         return orderService.updateMemberTotal(ordersId);
     }

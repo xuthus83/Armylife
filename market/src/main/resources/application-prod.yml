@@ -30,7 +30,7 @@ spring:
         min-idle: 0
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://rm-bp19258xs6rg675x91o.mysql.rds.aliyuncs.com:3306/armylife?serverTimezone=UTC
+    url: jdbc:mysql://rm-bp19258xs6rg675x91o.mysql.rds.aliyuncs.com:3306/armylife?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&autoReconnect=true
     username: root
     password: Xx960928++
     hikari:

@@ -31,21 +31,18 @@ public class IntegralMallController {
 
     /**
      * 积分商城商品添加
-     * @param file
-     * @param pointsMallProducts
+     * @param productId
      * @param request
      * @return
      */
     @RequestMapping("picture")
     @ResponseBody
-    public int upload(MultipartFile[] file,PointsMallProducts pointsMallProducts,HttpServletRequest request) {
+    public int upload(MultipartFile[] file,Long productId,HttpServletRequest request) {
 
         String newName = null;
         String exeName = null;
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
         Date date=new Date();
-        pointsMallProducts.setAddingTime(date);
-        Long id=integralService.productinsert(pointsMallProducts);
         if(file!=null){
 
             String fileName=null;
@@ -69,7 +66,7 @@ public class IntegralMallController {
                         file[i].transferTo(pic);
                         MallProductsPicture mallProductsPicture=new MallProductsPicture();
                         mallProductsPicture.setPictureUrl("http://pic.armylife.cn/Mall/" +newName + exeName);
-                        mallProductsPicture.setProductId(id);
+                        mallProductsPicture.setProductId(productId);
                         integralService.pictureInsert(mallProductsPicture);
                         return 1;
                     }
@@ -84,6 +81,22 @@ public class IntegralMallController {
     };
 
     /**
+     * 添加商品
+     * @param pointsMallProducts
+     * @return
+     */
+    @RequestMapping("addProduct")
+    @ResponseBody
+    public Long addProduct(PointsMallProducts pointsMallProducts){
+        logger.info("商品详情:"+pointsMallProducts.toString());
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh-mm-ss");
+        Date date=new Date();
+        pointsMallProducts.setAddingTime(date);
+        Long id=integralService.productinsert(pointsMallProducts);
+        return id;
+    }
+
+    /**
      * 查询所有积分商品
      * @param pageNum
      * @return
@@ -96,5 +109,28 @@ public class IntegralMallController {
         PageInfo<PointsMallProducts> pageInfo=new PageInfo<>(integralService.productSelectAll());
         return pageInfo;
     }
+
+    /**
+     * 更新商品数据
+     * @param pointsMallProducts
+     * @return
+     */
+    @RequestMapping("updateProduct")
+    @ResponseBody
+    public int updateProduct(PointsMallProducts pointsMallProducts){
+        return integralService.updateProduct(pointsMallProducts);
+    };
+
+    /**
+     * 通过ID查询商品
+     * @param pointsMallProductsId
+     * @return
+     */
+    @RequestMapping("selectForId")
+    @ResponseBody
+    public PointsMallProducts selectForId(Long pointsMallProductsId){
+        return integralService.selectForId(pointsMallProductsId);
+    };
+
 
 }

@@ -28,7 +28,7 @@ public class MessageWechat {
         String str= TemplateMsgService.HttpGet(URL,getDataStr);
         JSONObject jsonObject=JSONObject.fromObject(str);
         String message=jsonObject.toString();
-        System.out.println("token"+message);
+//        System.out.println("token"+message);
         String token=(String) jsonObject.get("access_token");
         return token;
     }
@@ -88,10 +88,10 @@ public class MessageWechat {
         for (int i=1;i<=key.size()+1;i++){
             String keywordNum=key.get("key"+i);
             String keyName="keyword"+i;
-            logger.info("keyname:"+keyName);
+//            logger.info("keyname:"+keyName);
             JSONObject keyword=new JSONObject();
             keyword.put("value",keywordNum);
-            logger.info("keyword"+keyword.toString());
+//            logger.info("keyword"+keyword.toString());
             date.put(keyName,keyword);
         }
         wxmessage.put("data",date.toString());
