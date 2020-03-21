@@ -46,4 +46,10 @@ public interface MemberMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(Member record);
+
+    /**
+     *
+     * @return
+     */
+    List<Member> allDelivery();
 }

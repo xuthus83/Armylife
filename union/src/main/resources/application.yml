@@ -24,7 +24,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 118.31.121.141:8848
+        server-addr: 127.0.0.1:8848
 #        namespace: e9b9f971-7391-4692-b9ae-50b00ab26924
     sentinel:
       transport:
@@ -48,3 +48,6 @@ spring:
   jackson:
     date-format: yyyy/MM/dd HH:mm:ss
     time-zone: GMT+8
+logging:
+  level:
+    root: warn

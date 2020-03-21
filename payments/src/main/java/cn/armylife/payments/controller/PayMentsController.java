@@ -3,11 +3,13 @@ package cn.armylife.payments.controller;
 import cn.armylife.common.config.AlipayConfig;
 import cn.armylife.common.domain.*;
 import cn.armylife.payments.domain.Alipay;
+import cn.armylife.payments.domain.RedEnvelopes;
 import cn.armylife.payments.feignservice.IntegralService;
 import cn.armylife.payments.feignservice.MarketService;
 import cn.armylife.payments.feignservice.MemberService;
 import cn.armylife.payments.feignservice.Payservice;
 import cn.armylife.payments.service.PayMentsService;
+import cn.armylife.payments.service.RedEnvelopesService;
 import cn.armylife.payments.service.TransactionsService;
 import cn.armylife.payments.utils.MemberWXMyConfigUtil;
 import cn.armylife.payments.utils.MessageWechat;
@@ -62,6 +64,9 @@ public class PayMentsController {
     @Autowired
     MessageWechat messageWechat;
 
+    @Autowired
+    RedEnvelopesService redEnvelopesService;
+
     @Value("${server.port}")
     int port;
 
@@ -74,7 +79,14 @@ public class PayMentsController {
      */
     @RequestMapping("EnableWechatPayForOrder")//订单支付
     @ResponseBody
-    public Map<String, String> EnableWechatPayForOrder(Payments payments,Long ordersId,String attach, HttpServletRequest request){
+    public Map<String, String> EnableWechatPayForOrder(Payments payments,Long ordersId,String attach,int isRed, HttpServletRequest request){
+        BigDecimal red=new BigDecimal(0);
+        Long redId=null;
+        if (isRed == 1) {
+            redId=Long.getLong(request.getParameter("redId"));
+            RedEnvelopes redEnvelopes=redEnvelopesService.selectRedForId(redId);
+            red=redEnvelopes.getAmountNumber();
+        }
         HttpSession session=request.getSession();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd-HH:mm:ss");
         Date date=new Date();
@@ -131,7 +143,7 @@ public class PayMentsController {
         payments.setOrderId(ordersId);
         payments.setPayApp("1");
         String desc=payments.getPayDesc();
-        String total=String.valueOf(payments.getPayTotal());
+        String total=String.valueOf(payments.getPayTotal().subtract(red));
         logger.info("支付金额:"+total);
         payMentsService.insert(payments);
         Map<String, String> result=payservice.order(desc,total,String.valueOf(id),attach,member.getMemberWechat(),request);//返回调起支付所需数据

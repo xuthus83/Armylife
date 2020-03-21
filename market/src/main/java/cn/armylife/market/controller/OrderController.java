@@ -132,11 +132,66 @@ public class OrderController {
             wXtemplate.setKey(key);
             wXtemplate.setUrl("ArmyStudents/OrderWechat.html?ordersId="+int1);
             messageWechat.newOrderService(wXtemplate);
+            if (shopOrder.getOrdersType()==3){
+
+            }
         }
         lo.rightPop("userId-"+member.getMemberId()+"s"+shopOrder.getShopId());
         lo.rightPop("userId-"+member.getMemberId());
         logger.info("订单Id"+int1);
         return int1;
+    }
+
+    /**
+     * 添加下单美团订单
+     * @param request
+     * @param shopOrder
+     * @return
+     */
+    @RequestMapping("AddMeiTuanDeliveryOrder")
+    @ResponseBody
+    public int AddMeiTuanDeliveryOrder(HttpServletRequest request, ShopOrder shopOrder){
+        HttpSession session=request.getSession();
+
+        Long int1 = NumberID.nextId(port);
+        Member member=(Member)session.getAttribute("Students");
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date=new Date();
+        String creatime=sdf.format(date);
+        shopOrder.setCreatTime(creatime);
+        shopOrder.setIsexpress(0);
+        shopOrder.setOrdersStatus("0");
+        shopOrder.setOrdersType(4);
+        shopOrder.setStuId(member.getMemberId());
+
+        //对下单用户进行微信通知
+        WXtemplate wXtemplate=new WXtemplate();
+        wXtemplate.setTemplate("WD4fbaWwjhJzwB1VXV3jFWqNYpSvD_Dye1sUJ5xZCus");
+        wXtemplate.setOpenid(member.getMemberWechat());
+        wXtemplate.setFirst("您好,已成功创建订单!");
+        wXtemplate.setRemark1("点击可查看订单详情");
+        Map<String,String> key=new HashMap<>();
+        key.put("key1",String.valueOf(int1));
+        key.put("key2",creatime);
+        wXtemplate.setKey(key);
+        wXtemplate.setUrl("ArmyStudents/OrderWechat.html?ordersId="+int1);
+        messageWechat.newOrderService(wXtemplate);
+
+        List<Member> deliverys=orderService.allDelivery();
+        for(int i=0;i<deliverys.size();i++){
+            //对跑腿用户进行微信通知
+            wXtemplate.setTemplate("rEg8FotTl5Dseyz31FYv3577cFTA0mpkv81fr4lW8hA");
+            wXtemplate.setOpenid(deliverys.get(i).getMemberWechat());
+            wXtemplate.setFirst("您好,有美团代取订单了!");
+            wXtemplate.setRemark1("点击可查看订单详情");
+            Map<String,String> key2=new HashMap<>();
+            key2.put("key1",shopOrder.getOrdersId().toString());
+            key2.put("key2",shopOrder.getOrdersAddress());
+            wXtemplate.setKey(key2);
+            wXtemplate.setUrl("ArmyStudents/OrderWechat.html?ordersId="+int1);
+            messageWechat.newOrderService(wXtemplate);
+        }
+        return orderService.insertMeiTuan(shopOrder);
     }
 
     /**
@@ -635,6 +690,20 @@ public class OrderController {
     @ResponseBody
     public int eidtHairNum(Hairvip hairvip,int code){
         return orderService.editHairNum(hairvip,code);
+    }
+
+    /**
+     * 获取商家被购买商品奖金
+     * @param shopId
+     * @param request
+     * @param productId
+     * @return
+     */
+    public Product shopManager(Long shopId,HttpServletRequest request,Long productId){
+        HttpSession session=request.getSession();
+        Member member=(Member)session.getAttribute("Shop");
+        Product product=productService.getProduct(productId);
+        return product;
     }
 
 }

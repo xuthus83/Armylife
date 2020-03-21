@@ -91,4 +91,8 @@
     member_password, shop_status
     from member
   </select>
+
+  <select id="allDelivery" resultMap="BaseResultMap">
+    select * from member where member_type=2
+  </select>
 </mapper>

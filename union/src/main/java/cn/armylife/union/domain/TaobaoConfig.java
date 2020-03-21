@@ -1,4 +1,4 @@
-package cn.armylife.union.domian;
+package cn.armylife.union.domain;
 
 
 public class TaobaoConfig {

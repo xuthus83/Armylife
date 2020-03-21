@@ -1,15 +1,17 @@
 server:
   port: 9111
 spring:
-  profiles:
-    active: dev
-    datasource:
+  datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/armylife?serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/armylife?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&autoReconnect=true
     username: root
     password: root
     hikari:
       max-lifetime: 5000
+      jdbc-url: jdbc:mysql://localhost:3306/armylife?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&autoReconnect=true
+      username: root
+      password: root
+
   cloud:
     nacos:
       discovery:
@@ -43,9 +45,10 @@ mybatis:
 
 logging:
   level:
-    cn.armylife.payments.Mapper: debug
+    root: warn
+    cn.armylife.payments.mapper: debug
     com.alibaba.nacos.client.naming: error
-#hystrix的超时时间
+##hystrix的超时时间
 hystrix:
   command:
     default:

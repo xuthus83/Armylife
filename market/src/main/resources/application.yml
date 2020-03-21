@@ -44,5 +44,6 @@ pagehelper:
   params: countSql
 logging:
   level:
+    root: warn
     cn.armylife.payments.Mapper: debug
     com.alibaba.nacos.client.naming: error

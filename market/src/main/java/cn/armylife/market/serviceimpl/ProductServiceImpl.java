@@ -250,4 +250,13 @@ public class ProductServiceImpl implements ProductService {
     public int updateTagName(ShopTag shopTag){
         return shopTagMapper.updateTagName(shopTag);
     };
+
+    /**
+     * 查询商品信息
+     * @param productId
+     * @return
+     */
+    public Product getProduct(Long productId){
+        return productMapper.getProduct(productId);
+    };
 }

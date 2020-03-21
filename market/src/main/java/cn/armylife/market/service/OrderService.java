@@ -16,6 +16,8 @@ public interface OrderService {
 
     int insert(ShopOrder record, List<Product> productList,Integer orderExpress);
 
+    int insertMeiTuan(ShopOrder shopOrder);
+
     int VIPinsert(ShopOrder shopOrder);
 
     /**
@@ -197,5 +199,12 @@ public interface OrderService {
      * @return
      */
     int editHairNum(Hairvip hairvip,int code);
+
+
+    /**
+     * 查询所有跑腿
+     * @return
+     */
+    List<Member> allDelivery();
 
 }

@@ -101,5 +101,8 @@
      od.order_detail_name
   </select>
 
+  <select id="getProduct" resultMap="BaseResultMap">
+    select * from product where product_id=#{productId}
+  </select>
 
 </mapper>

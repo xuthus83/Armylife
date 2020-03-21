@@ -1,9 +1,8 @@
 package cn.armylife.union.controler;
 
 import cn.armylife.union.domain.Favorites;
-import cn.armylife.union.domian.TaobaoConfig;
+import cn.armylife.union.domain.TaobaoConfig;
 import cn.armylife.union.service.TaobaoService;
-import cn.armylife.union.util.URLRequest;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.taobao.api.ApiException;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 @Controller

@@ -46,6 +46,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     MemberService memberService;
 
+    @Autowired
+    MemberMapper memberMapper;
+
     @Autowired HairvipMapper hairvipMapper;
 
     @Autowired PaymentsMapper paymentsMapper;
@@ -138,6 +141,12 @@ public class OrderServiceImpl implements OrderService {
         int msg=shopOrderMapper.insert(shopOrder);
         return msg;
     }
+
+
+
+    public int insertMeiTuan(ShopOrder shopOrder){
+        return shopOrderMapper.insert(shopOrder);
+    };
 
     @Override
     public int VIPinsert(ShopOrder shopOrder){
@@ -596,4 +605,12 @@ public class OrderServiceImpl implements OrderService {
             hairvip1.setHairvipNum(num);
             return hairvipMapper.updateHair(hairvip1);
     };
+
+    /**
+     * 查询所有跑腿
+     * @return
+     */
+   public List<Member> allDelivery(){
+       return memberMapper.allDelivery();
+   };
 }
